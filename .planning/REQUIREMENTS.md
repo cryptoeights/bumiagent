@@ -89,47 +89,47 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SC-01 | — | Pending |
-| SC-02 | — | Pending |
-| SC-03 | — | Pending |
-| SC-04 | — | Pending |
-| SC-05 | — | Pending |
-| SC-06 | — | Pending |
-| SC-07 | — | Pending |
-| SC-08 | — | Pending |
-| SC-09 | — | Pending |
-| SC-10 | — | Pending |
-| SC-11 | — | Pending |
-| SC-12 | — | Pending |
-| API-01 | — | Pending |
-| API-02 | — | Pending |
-| API-03 | — | Pending |
-| API-04 | — | Pending |
-| API-05 | — | Pending |
-| API-06 | — | Pending |
-| API-07 | — | Pending |
-| API-08 | — | Pending |
-| API-09 | — | Pending |
-| API-10 | — | Pending |
-| UI-01 | — | Pending |
-| UI-02 | — | Pending |
-| UI-03 | — | Pending |
-| UI-04 | — | Pending |
-| UI-05 | — | Pending |
-| UI-06 | — | Pending |
-| UI-07 | — | Pending |
-| UI-08 | — | Pending |
-| UI-09 | — | Pending |
-| INT-01 | — | Pending |
-| INT-02 | — | Pending |
-| INT-03 | — | Pending |
-| INT-04 | — | Pending |
+| SC-01 | 1 | Pending |
+| SC-02 | 1 | Pending |
+| SC-03 | 1 | Pending |
+| SC-04 | 1 | Pending |
+| SC-05 | 1 | Pending |
+| SC-06 | 1 | Pending |
+| SC-07 | 1 | Pending |
+| SC-08 | 1 | Pending |
+| SC-09 | 1 | Pending |
+| SC-10 | 1 | Pending |
+| SC-11 | 4 | Pending |
+| SC-12 | 4 | Pending |
+| API-01 | 2 | Pending |
+| API-02 | 2 | Pending |
+| API-03 | 2 | Pending |
+| API-04 | 2 | Pending |
+| API-05 | 2 | Pending |
+| API-06 | 2 | Pending |
+| API-07 | 2 | Pending |
+| API-08 | 2 | Pending |
+| API-09 | 2 | Pending |
+| API-10 | 2 | Pending |
+| UI-01 | 3 | Pending |
+| UI-02 | 3 | Pending |
+| UI-03 | 3 | Pending |
+| UI-04 | 3 | Pending |
+| UI-05 | 3 | Pending |
+| UI-06 | 3 | Pending |
+| UI-07 | 3 | Pending |
+| UI-08 | 3 | Pending |
+| UI-09 | 3 | Pending |
+| INT-01 | 4 | Pending |
+| INT-02 | 2 | Pending |
+| INT-03 | 4 | Pending |
+| INT-04 | 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 35 total
-- Mapped to phases: 0
-- Unmapped: 35 ⚠️
+- Mapped to phases: 35
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-13*
-*Last updated: 2026-03-13 after initial definition*
+*Last updated: 2026-03-13 after roadmap phase mapping*
