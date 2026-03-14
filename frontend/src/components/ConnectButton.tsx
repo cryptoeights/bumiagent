@@ -1,11 +1,24 @@
 'use client';
 
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { useState, useEffect } from 'react';
 
 export function ConnectButton() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  // Prevent hydration mismatch — render nothing until client-side
+  if (!mounted) {
+    return (
+      <button className="px-4 py-2 text-sm font-semibold rounded-lg bg-[var(--celo-green)] text-zinc-950">
+        Connect Wallet
+      </button>
+    );
+  }
 
   if (isConnected && address) {
     return (

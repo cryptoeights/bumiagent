@@ -33,8 +33,20 @@ export default function ChatPage() {
   const [paymentRequired, setPaymentRequired] = useState<{ price: string; payTo: string; amount: string; modelName?: string } | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'sending' | 'confirming' | 'chatting'>('idle');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  // Refs to avoid stale closures in callbacks
   const pendingMessageRef = useRef('');
+  const messagesRef = useRef<Message[]>([]);
+  const activeConvIdRef = useRef<number | null>(null);
+  const selectedModelRef = useRef('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Keep refs in sync
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
+  useEffect(() => { activeConvIdRef.current = activeConvId; }, [activeConvId]);
+  useEffect(() => { selectedModelRef.current = selectedModel; }, [selectedModel]);
+  useEffect(() => { setMounted(true); }, []);
 
   const { writeContract, data: txHash, error: txError, reset: resetTx } = useWriteContract();
   const { isSuccess: txConfirmed, isLoading: txConfirming } = useWaitForTransactionReceipt({ hash: txHash });
@@ -54,18 +66,22 @@ export default function ChatPage() {
   // Load conversations
   const loadConvList = useCallback(async () => {
     if (!address) return;
-    const data = await apiFetch<{ conversations: ConvSummary[] }>(`/conversations?userAddress=${address}&agentId=${agentId}`);
-    setConvList(data.conversations);
+    try {
+      const data = await apiFetch<{ conversations: ConvSummary[] }>(`/conversations?userAddress=${address}&agentId=${agentId}`);
+      setConvList(data.conversations);
+    } catch {}
   }, [address, agentId]);
 
   useEffect(() => { loadConvList(); }, [loadConvList]);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   async function loadConversation(convId: number) {
-    const data = await apiFetch<{ conversation: { id: number; messages: Message[] } }>(`/conversations/${convId}`);
-    setActiveConvId(convId);
-    setMessages(Array.isArray(data.conversation.messages) ? data.conversation.messages : []);
-    setError(''); setPaymentRequired(null);
+    try {
+      const data = await apiFetch<{ conversation: { id: number; messages: Message[] } }>(`/conversations/${convId}`);
+      setActiveConvId(convId);
+      setMessages(Array.isArray(data.conversation.messages) ? data.conversation.messages : []);
+      setError(''); setPaymentRequired(null);
+    } catch { setError('Failed to load conversation'); }
   }
 
   function startNewChat() {
@@ -73,32 +89,44 @@ export default function ChatPage() {
   }
 
   async function saveMessages(convId: number, newMsgs: Message[]) {
-    await apiFetch(`/conversations/${convId}/messages`, { method: 'PATCH', body: JSON.stringify({ messages: newMsgs }) });
-    loadConvList();
+    try {
+      await apiFetch(`/conversations/${convId}/messages`, { method: 'PATCH', body: JSON.stringify({ messages: newMsgs }) });
+      loadConvList();
+    } catch {}
   }
 
-  async function ensureConversation(): Promise<number> {
-    if (activeConvId) return activeConvId;
-    if (!address) throw new Error('Connect wallet');
+  async function getOrCreateConversation(): Promise<number> {
+    if (activeConvIdRef.current) return activeConvIdRef.current;
+    if (!address) throw new Error('Connect wallet first');
     const data = await apiFetch<{ conversation: { id: number } }>('/conversations', {
       method: 'POST', body: JSON.stringify({ agentId, userAddress: address, title: 'New Chat' }),
     });
-    setActiveConvId(data.conversation.id);
-    return data.conversation.id;
+    const newId = data.conversation.id;
+    setActiveConvId(newId);
+    activeConvIdRef.current = newId;
+    return newId;
   }
 
-  const sendWithPayment = useCallback(async (hash: string) => {
-    if (!pendingMessageRef.current) return;
-    setPaymentStatus('chatting'); setLoading(true);
-    try {
-      const convId = await ensureConversation();
-      const userMsg: Message = { role: 'user', content: pendingMessageRef.current };
-      setMessages(prev => [...prev, userMsg]);
+  // Send chat request to backend
+  async function doChat(userMessage: string, txHashStr?: string): Promise<void> {
+    const convId = await getOrCreateConversation();
+    const userMsg: Message = { role: 'user', content: userMessage };
+    setMessages(prev => [...prev, userMsg]);
+    setLoading(true); setError('');
 
-      const result = await apiFetch<{ response: string; model: string; modelId: string }>(`/agents/${agentId}/chat`, {
+    try {
+      const headers: Record<string, string> = {};
+      if (txHashStr) headers['x-payment-txhash'] = txHashStr;
+
+      const result = await apiFetch<{ response: string; model: string }>(`/agents/${agentId}/chat`, {
         method: 'POST',
-        headers: { 'x-payment-txhash': hash },
-        body: JSON.stringify({ message: pendingMessageRef.current, callerAddress: address, history: messages, modelId: selectedModel || undefined }),
+        headers,
+        body: JSON.stringify({
+          message: userMessage,
+          callerAddress: address || undefined,
+          history: messagesRef.current,
+          modelId: selectedModelRef.current || undefined,
+        }),
       });
 
       const assistantMsg: Message = { role: 'assistant', content: result.response };
@@ -106,17 +134,46 @@ export default function ChatPage() {
       await saveMessages(convId, [userMsg, assistantMsg]);
       setPaymentRequired(null);
     } catch (err: any) {
-      setError(err.error || 'Chat failed after payment');
+      if (err.status === 402) {
+        const accept = err.data?.accepts?.[0];
+        if (accept) {
+          setPaymentRequired({
+            price: formatCUSD(accept.maxAmountRequired || '0'),
+            payTo: accept.payTo,
+            amount: accept.maxAmountRequired,
+            modelName: accept.modelId ? currentModel?.name : undefined,
+          });
+          pendingMessageRef.current = userMessage;
+          setMessages(prev => prev.slice(0, -1)); // Remove user msg until paid
+          setInput(userMessage);
+        } else {
+          setError('Payment required but no pricing info returned');
+        }
+      } else {
+        setError(err.error || err.detail || 'Failed to send message');
+      }
     } finally {
-      setLoading(false); setPaymentStatus('idle'); pendingMessageRef.current = ''; resetTx();
+      setLoading(false);
+    }
+  }
+
+  // When TX confirmed, retry chat with txHash
+  useEffect(() => {
+    if (txConfirmed && txHash && pendingMessageRef.current) {
+      const msg = pendingMessageRef.current;
+      pendingMessageRef.current = '';
+      setPaymentStatus('chatting');
+      doChat(msg, txHash).finally(() => {
+        setPaymentStatus('idle');
+        resetTx();
+      });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [agentId, address, messages, selectedModel]);
+  }, [txConfirmed, txHash]);
 
-  useEffect(() => { if (txConfirmed && txHash) sendWithPayment(txHash); }, [txConfirmed, txHash, sendWithPayment]);
   useEffect(() => {
     if (txError) {
-      setError(txError.message.includes('User rejected') ? 'Transaction cancelled' : `TX failed: ${txError.message.slice(0, 100)}`);
+      setError(txError.message.includes('User rejected') ? 'Transaction cancelled' : `TX error: ${txError.message.slice(0, 120)}`);
       setPaymentStatus('idle'); setLoading(false); resetTx();
     }
   }, [txError, resetTx]);
@@ -124,41 +181,9 @@ export default function ChatPage() {
   async function sendMessage(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim() || loading) return;
-    const userMessage = input.trim();
-    setInput(''); setPaymentRequired(null); setError('');
-
-    const userMsg: Message = { role: 'user', content: userMessage };
-    setMessages(prev => [...prev, userMsg]);
-    setLoading(true);
-
-    try {
-      const convId = await ensureConversation();
-      const result = await apiFetch<{ response: string; model: string }>(`/agents/${agentId}/chat`, {
-        method: 'POST',
-        body: JSON.stringify({ message: userMessage, callerAddress: address || undefined, history: messages, modelId: selectedModel || undefined }),
-      });
-
-      const assistantMsg: Message = { role: 'assistant', content: result.response };
-      setMessages(prev => [...prev, assistantMsg]);
-      await saveMessages(convId, [userMsg, assistantMsg]);
-    } catch (err: any) {
-      if (err.status === 402) {
-        const accept = err.data.accepts[0];
-        setPaymentRequired({
-          price: formatCUSD(accept?.maxAmountRequired || '0'),
-          payTo: accept?.payTo,
-          amount: accept?.maxAmountRequired,
-          modelName: currentModel?.name,
-        });
-        pendingMessageRef.current = userMessage;
-        setMessages(prev => prev.slice(0, -1));
-        setInput(userMessage);
-      } else {
-        setError(err.error || 'Failed to send message');
-      }
-    } finally {
-      setLoading(false);
-    }
+    const msg = input.trim();
+    setInput('');
+    await doChat(msg);
   }
 
   function handlePay() {
@@ -180,12 +205,13 @@ export default function ChatPage() {
 
   const statusText = paymentStatus === 'sending' ? 'Confirm in wallet...'
     : paymentStatus === 'confirming' || txConfirming ? 'Confirming on Celo...'
-    : paymentStatus === 'chatting' ? 'Payment verified! Getting response...' : '';
+    : paymentStatus === 'chatting' ? 'Payment confirmed! Getting response...' : '';
 
-  // Cost display
   const costDisplay = currentModel?.tier === 'premium'
     ? `${formatCUSD(currentModel.costPerCall)} cUSD/msg`
-    : isOwner ? 'Free' : `${agent ? formatCUSD(agent.pricePerCall) : '...'} cUSD/msg`;
+    : isOwner ? 'Free' : agent ? `${formatCUSD(agent.pricePerCall)} cUSD/msg` : '...';
+
+  if (!mounted) return null;
 
   return (
     <div className="noise-bg min-h-screen flex flex-col">
@@ -217,9 +243,9 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Main Chat Area */}
+        {/* Main Chat */}
         <div className="flex-1 flex flex-col">
-          {/* Agent header + Model selector */}
+          {/* Header + Model selector */}
           <div className="px-6 py-3 border-b border-zinc-800/50 flex items-center gap-3">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-zinc-500 hover:text-zinc-300 transition-colors text-lg">
               {sidebarOpen ? '◁' : '▷'}
@@ -236,41 +262,32 @@ export default function ChatPage() {
                 }`}>{costDisplay}</span>
               </div>
             </div>
-
-            {/* Model Selector */}
-            <div className="shrink-0">
-              <select
-                value={selectedModel}
-                onChange={e => setSelectedModel(e.target.value)}
-                className="px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 focus:outline-none focus:border-[var(--celo-green)]/50 cursor-pointer"
-              >
-                <optgroup label="Free Models">
-                  {models.filter(m => m.tier === 'free').map(m => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </optgroup>
-                <optgroup label="Premium Models (pay per call)">
-                  {models.filter(m => m.tier === 'premium').map(m => (
-                    <option key={m.id} value={m.id}>{m.name} — {formatCUSD(m.costPerCall)} cUSD</option>
-                  ))}
-                </optgroup>
-              </select>
-            </div>
+            <select value={selectedModel} onChange={e => setSelectedModel(e.target.value)}
+              className="px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 focus:outline-none focus:border-[var(--celo-green)]/50 cursor-pointer shrink-0">
+              <optgroup label="Free Models">
+                {models.filter(m => m.tier === 'free').map(m => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Premium (pay per call)">
+                {models.filter(m => m.tier === 'premium').map(m => (
+                  <option key={m.id} value={m.id}>{m.name} — {formatCUSD(m.costPerCall)} cUSD</option>
+                ))}
+              </optgroup>
+            </select>
           </div>
 
-          {/* Model info bar */}
+          {/* Premium model info bar */}
           {currentModel?.tier === 'premium' && (
             <div className="px-6 py-2 bg-[var(--celo-gold)]/5 border-b border-[var(--celo-gold)]/10 flex items-center gap-2 text-xs">
               <span className="text-[var(--celo-gold)]">⚡</span>
               <span className="text-zinc-400">{currentModel.name}</span>
               <span className="text-zinc-600">·</span>
               <span className="text-[var(--celo-gold)] font-mono">{formatCUSD(currentModel.costPerCall)} cUSD/msg</span>
-              {currentModel.webSearch && (
-                <>
-                  <span className="text-zinc-600">·</span>
-                  <span className="text-[var(--celo-green)]">🌐 Web Search</span>
-                </>
-              )}
+              {currentModel.webSearch && <>
+                <span className="text-zinc-600">·</span>
+                <span className="text-[var(--celo-green)]">🌐 Web Search</span>
+              </>}
               <span className="text-zinc-600">·</span>
               <span className="text-zinc-500">Everyone pays per call</span>
             </div>
@@ -282,9 +299,9 @@ export default function ChatPage() {
               <div className="text-center py-16">
                 <div className="text-4xl mb-3">💬</div>
                 <p className="text-zinc-500 text-sm">Start a conversation with {agent?.name || 'the agent'}</p>
-                {currentModel?.tier === 'free' && isOwner && <p className="text-zinc-600 text-xs mt-1">Free model selected — chat for free ✨</p>}
+                {currentModel?.tier === 'free' && isOwner && <p className="text-zinc-600 text-xs mt-1">Free model — chat for free ✨</p>}
                 {currentModel?.tier === 'free' && !isOwner && agent && <p className="text-zinc-600 text-xs mt-1">Free model: {formatCUSD(agent.pricePerCall)} cUSD/msg</p>}
-                {currentModel?.tier === 'premium' && <p className="text-[var(--celo-gold)] text-xs mt-1">Premium model: {formatCUSD(currentModel.costPerCall)} cUSD/msg for everyone</p>}
+                {currentModel?.tier === 'premium' && <p className="text-[var(--celo-gold)] text-xs mt-1">Premium: {formatCUSD(currentModel.costPerCall)} cUSD/msg for everyone</p>}
               </div>
             )}
 
@@ -312,18 +329,17 @@ export default function ChatPage() {
               </div>
             )}
 
-            {/* Payment Required */}
             {paymentRequired && (
               <div className="p-5 rounded-xl bg-[var(--celo-gold)]/5 border border-[var(--celo-gold)]/20">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-lg">💳</span>
                   <span className="font-semibold text-sm text-[var(--celo-gold)]">
-                    Payment Required{paymentRequired.modelName ? ` — ${paymentRequired.modelName}` : ' (x402)'}
+                    Payment Required{paymentRequired.modelName ? ` — ${paymentRequired.modelName}` : ''}
                   </span>
                 </div>
                 <p className="text-sm text-zinc-400 mb-2">
                   Cost: <span className="text-zinc-200 font-bold">{paymentRequired.price} cUSD</span>
-                  {currentModel?.tier === 'premium' && <span className="text-zinc-500"> (premium model fee)</span>}
+                  {currentModel?.tier === 'premium' && <span className="text-zinc-500"> (premium model)</span>}
                 </p>
                 <div className="text-[10px] text-zinc-600 font-mono mb-4 p-2 rounded bg-zinc-900/50 break-all">Pay to: {paymentRequired.payTo}</div>
                 {statusText && (
@@ -333,7 +349,9 @@ export default function ChatPage() {
                 )}
                 {txHash && (
                   <div className="text-[10px] text-zinc-600 mb-3">
-                    TX: <a href={`https://celoscan.io/tx/${txHash}`} target="_blank" rel="noopener" className="text-[var(--celo-green)] hover:underline">{(txHash as string).slice(0, 14)}...{(txHash as string).slice(-8)}</a>
+                    TX: <a href={`https://celoscan.io/tx/${txHash}`} target="_blank" rel="noopener" className="text-[var(--celo-green)] hover:underline">
+                      {(txHash as string).slice(0, 14)}...{(txHash as string).slice(-8)}
+                    </a>
                   </div>
                 )}
                 <div className="flex gap-2">
@@ -343,7 +361,7 @@ export default function ChatPage() {
                       {chainId !== celo.id ? 'Switch to Celo' : `Pay ${paymentRequired.price} cUSD & Send`}
                     </button>
                   )}
-                  <button onClick={() => { setPaymentRequired(null); pendingMessageRef.current = ''; resetTx(); }}
+                  <button onClick={() => { setPaymentRequired(null); pendingMessageRef.current = ''; resetTx(); setLoading(false); }}
                     disabled={paymentStatus !== 'idle'}
                     className="px-4 py-2.5 rounded-lg border border-zinc-700 text-zinc-400 text-sm hover:bg-zinc-800/50 transition-all disabled:opacity-50">Cancel</button>
                 </div>
@@ -362,9 +380,7 @@ export default function ChatPage() {
                 disabled={loading}
                 className="flex-1 px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-[var(--celo-green)]/50 focus:ring-1 focus:ring-[var(--celo-green)]/20 transition-all text-sm disabled:opacity-50" />
               <button type="submit" disabled={loading || !input.trim()}
-                className="px-5 py-3 rounded-xl bg-[var(--celo-green)] text-zinc-950 font-semibold text-sm hover:brightness-110 transition-all active:scale-95 disabled:opacity-50">
-                Send
-              </button>
+                className="px-5 py-3 rounded-xl bg-[var(--celo-green)] text-zinc-950 font-semibold text-sm hover:brightness-110 transition-all active:scale-95 disabled:opacity-50">Send</button>
             </form>
           </div>
         </div>
