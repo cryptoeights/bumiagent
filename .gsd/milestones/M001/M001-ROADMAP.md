@@ -65,7 +65,7 @@ This milestone is complete only when all are true:
   > After this: Backend API registers agents (wallet gen, encryption, DB), chats with agents via OpenRouter, rate-limits calls — testable via curl/httpie
 - [x] **S03: Backend Payments — x402 + Subscriptions + Jobs** `risk:high` `depends:[S01,S02]`
   > After this: x402 pay-per-call chat works end-to-end, premium subscriptions split to treasury/EarthPool, ERC-8183 job lifecycle (create→fund→submit→complete) works via API
-- [ ] **S04: Frontend — Landing, Deploy Form, Chat** `risk:medium` `depends:[S02]`
+- [x] **S04: Frontend — Landing, Deploy Form, Chat** `risk:medium` `depends:[S02]`
   > After this: User can visit landing page, connect wallet, fill 3-field form to deploy an agent, and chat with it in the browser
 - [ ] **S05: Frontend — Registry, AgentScan, Dashboard** `risk:medium` `depends:[S03,S04]`
   > After this: Agent registry page lists all agents with search/filter, AgentScan shows per-agent on-chain data + stats, owner dashboard shows agent list with management
