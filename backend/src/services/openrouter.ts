@@ -2,18 +2,21 @@ import { env } from '../config/env.js';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-// Free models — no API key credit needed for these
+// Free models — March 2026 verified working (order = priority)
 const FREE_MODELS = [
-  'mistralai/mistral-small-3.1-24b-instruct:free',
+  'stepfun/step-3.5-flash:free',
   'google/gemma-3-4b-it:free',
+  'google/gemma-3-27b-it:free',
+  'google/gemma-3-12b-it:free',
+  'nousresearch/hermes-3-llama-3.1-405b:free',
   'qwen/qwen3-4b:free',
 ];
 
 // Premium models — require OpenRouter credits
 const PREMIUM_MODELS = [
-  'anthropic/claude-sonnet-4',
-  'openai/gpt-4o',
-  'google/gemini-2.0-flash-001',
+  'google/gemini-3-flash',
+  'anthropic/claude-sonnet-4.6',
+  'openai/gpt-5.4',
 ];
 
 export interface ChatMessage {
@@ -31,6 +34,7 @@ export interface ChatResponse {
 /**
  * Call OpenRouter for a chat completion.
  * Uses free models by default, premium models for premium agents.
+ * Tries each model in order as fallback chain.
  */
 export async function chatCompletion(
   messages: ChatMessage[],
@@ -39,7 +43,6 @@ export async function chatCompletion(
   const models = isPremium ? PREMIUM_MODELS : FREE_MODELS;
   let lastError: Error | null = null;
 
-  // Try models in order (fallback chain)
   for (const model of models) {
     try {
       const response = await fetch(OPENROUTER_API_URL, {
@@ -60,9 +63,10 @@ export async function chatCompletion(
 
       if (!response.ok) {
         const errBody = await response.text();
-        lastError = new Error(`OpenRouter ${response.status}: ${errBody}`);
-        // Try next model on 429 (rate limit), 402 (quota), or 503 (unavailable)
-        if (response.status === 429 || response.status === 402 || response.status === 503) continue;
+        lastError = new Error(`OpenRouter ${response.status} [${model}]: ${errBody}`);
+        console.warn(`Model ${model} failed (${response.status}), trying next...`);
+        // Try next model on 429 (rate limit), 402 (quota), 503 (unavailable), 400 (model not found)
+        if ([429, 402, 503, 400, 404].includes(response.status)) continue;
         throw lastError;
       }
 
@@ -82,6 +86,7 @@ export async function chatCompletion(
       };
     } catch (err) {
       lastError = err as Error;
+      console.warn(`Model ${model} error:`, (err as Error).message);
       continue;
     }
   }

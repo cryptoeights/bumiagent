@@ -5,9 +5,10 @@ import { useAccount } from 'wagmi';
 import { useParams } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import { apiFetch } from '@/lib/api';
+import { formatCUSD } from '@/lib/constants';
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
 }
 
@@ -29,6 +30,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [paymentRequired, setPaymentRequired] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,19 +45,28 @@ export default function ChatPage() {
 
   const isOwner = address?.toLowerCase() === agent?.ownerAddress?.toLowerCase();
 
-  async function sendMessage(e: React.FormEvent) {
+  async function sendMessage(e: React.FormEvent, withPayment = false) {
     e.preventDefault();
     if (!input.trim() || loading) return;
 
     const userMessage = input.trim();
     setInput('');
+    setPaymentRequired(null);
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setLoading(true);
     setError('');
 
     try {
+      const headers: Record<string, string> = {};
+      if (withPayment) {
+        // MVP: send payment header to bypass x402
+        // In production: this would be a real on-chain TX hash
+        headers['x-payment'] = `celo:cUSD:${agent?.pricePerCall}:demo`;
+      }
+
       const result = await apiFetch<{ response: string; model: string }>(`/agents/${agentId}/chat`, {
         method: 'POST',
+        headers,
         body: JSON.stringify({
           message: userMessage,
           callerAddress: address || undefined,
@@ -65,16 +76,26 @@ export default function ChatPage() {
       setMessages(prev => [...prev, { role: 'assistant', content: result.response }]);
     } catch (err: any) {
       if (err.status === 402) {
-        const price = (Number(err.data.accepts[0]?.maxAmountRequired) / 1e18).toFixed(2);
-        setError(`Payment required: ${price} cUSD per call. Connect as owner for free access.`);
-      } else if (err.status === 503) {
-        setError(err.error || 'Agent is temporarily unavailable. Try again later.');
+        const price = formatCUSD(err.data.accepts[0]?.maxAmountRequired || '0');
+        const payTo = err.data.accepts[0]?.payTo;
+        setPaymentRequired({ price, payTo, message: userMessage });
+        // Remove the user message since we didn't get a response
+        setMessages(prev => prev.slice(0, -1));
+        setInput(userMessage); // Put message back in input
       } else {
         setError(err.error || 'Failed to send message');
       }
     } finally {
       setLoading(false);
     }
+  }
+
+  async function payAndChat() {
+    if (!paymentRequired) return;
+    setPaymentRequired(null);
+    // Re-send with payment header
+    const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+    await sendMessage(fakeEvent, true);
   }
 
   return (
@@ -97,6 +118,11 @@ export default function ChatPage() {
                     Owner (Free)
                   </span>
                 )}
+                {!isOwner && agent && (
+                  <span className="px-1.5 py-0.5 rounded bg-[var(--celo-gold)]/10 text-[var(--celo-gold)] text-[10px]">
+                    {formatCUSD(agent.pricePerCall)} cUSD/msg
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -104,13 +130,18 @@ export default function ChatPage() {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-          {messages.length === 0 && (
+          {messages.length === 0 && !paymentRequired && (
             <div className="text-center py-20">
               <div className="text-4xl mb-4">💬</div>
               <p className="text-zinc-500 text-sm">Start a conversation with {agent?.name || 'the agent'}</p>
               {!isOwner && agent && (
                 <p className="text-zinc-600 text-xs mt-2">
-                  Price: {(Number(agent.pricePerCall) / 1e18).toFixed(2)} cUSD per message
+                  Price: {formatCUSD(agent.pricePerCall)} cUSD per message
+                </p>
+              )}
+              {isOwner && (
+                <p className="text-zinc-600 text-xs mt-2">
+                  You own this agent — chat for free ✨
                 </p>
               )}
             </div>
@@ -142,6 +173,36 @@ export default function ChatPage() {
             </div>
           )}
 
+          {/* Payment Required Card */}
+          {paymentRequired && (
+            <div className="p-4 rounded-xl bg-[var(--celo-gold)]/5 border border-[var(--celo-gold)]/20">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">💳</span>
+                <span className="font-semibold text-sm text-[var(--celo-gold)]">Payment Required (x402)</span>
+              </div>
+              <p className="text-xs text-zinc-400 mb-3">
+                This agent charges <span className="text-zinc-200 font-mono">{paymentRequired.price} cUSD</span> per message.
+              </p>
+              <div className="text-[10px] text-zinc-600 font-mono mb-3 break-all">
+                Pay to: {paymentRequired.payTo}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={payAndChat}
+                  className="px-4 py-2 rounded-lg bg-[var(--celo-gold)] text-zinc-950 font-semibold text-xs hover:brightness-110 transition-all active:scale-95"
+                >
+                  Pay {paymentRequired.price} cUSD & Send
+                </button>
+                <button
+                  onClick={() => setPaymentRequired(null)}
+                  className="px-4 py-2 rounded-lg border border-zinc-700 text-zinc-400 text-xs hover:bg-zinc-800/50 transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           {error && (
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
               {error}
@@ -153,12 +214,12 @@ export default function ChatPage() {
 
         {/* Input */}
         <div className="px-6 py-4 border-t border-zinc-800/50">
-          <form onSubmit={sendMessage} className="flex gap-3">
+          <form onSubmit={(e) => sendMessage(e, false)} className="flex gap-3">
             <input
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
-              placeholder="Type your message..."
+              placeholder={isOwner ? "Type your message (free for owner)..." : "Type your message..."}
               disabled={loading}
               className="flex-1 px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-[var(--celo-green)]/50 focus:ring-1 focus:ring-[var(--celo-green)]/20 transition-all text-sm disabled:opacity-50"
             />

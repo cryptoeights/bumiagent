@@ -98,10 +98,18 @@ chatRoutes.post('/:agentId/chat', async (c) => {
     console.error(`Chat error for agent ${agentId}:`, err.message);
 
     // Graceful fallback
-    if (err.message?.includes('429') || err.message?.includes('402') || err.message?.includes('spend limit')) {
+    const errMsg = err.message || '';
+    if (errMsg.includes('429') || errMsg.includes('402') || errMsg.includes('spend limit')) {
       return c.json({
-        error: 'Agent is resting — AI model quota reached. Try again later or check OpenRouter API key limits.',
-        retryAfter: 60,
+        error: 'All AI models are temporarily busy. Retrying in a moment should work.',
+        retryAfter: 10,
+      }, 503);
+    }
+
+    if (errMsg.includes('All models failed')) {
+      return c.json({
+        error: 'All AI models are currently unavailable. Please try again in a few seconds.',
+        retryAfter: 10,
       }, 503);
     }
 
