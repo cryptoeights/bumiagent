@@ -2,29 +2,68 @@ import type { Context, Next } from 'hono';
 import { eq } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { agents } from '../db/schema.js';
+import { createPublicClient, http, parseAbiItem, type Hex } from 'viem';
+import { celo } from 'viem/chains';
+
+const cUSD = '0x765DE816845861e75A25fCA122bb6898B8B1282a';
+
+// Viem client for reading Celo mainnet
+const celoClient = createPublicClient({
+  chain: celo,
+  transport: http(),
+});
+
+/**
+ * Verify a cUSD transfer TX on Celo mainnet.
+ * Checks: correct recipient, correct token (cUSD), amount >= pricePerCall.
+ */
+async function verifyPaymentTx(
+  txHash: Hex,
+  expectedTo: string,
+  minAmount: bigint,
+): Promise<{ valid: boolean; amount: bigint; from: string; error?: string }> {
+  try {
+    const receipt = await celoClient.getTransactionReceipt({ hash: txHash });
+
+    if (receipt.status !== 'success') {
+      return { valid: false, amount: 0n, from: '', error: 'Transaction reverted' };
+    }
+
+    // Find the Transfer event from cUSD contract
+    const transferEvent = parseAbiItem('event Transfer(address indexed from, address indexed to, uint256 value)');
+
+    for (const log of receipt.logs) {
+      // Check it's from cUSD contract
+      if (log.address.toLowerCase() !== cUSD.toLowerCase()) continue;
+
+      // Check topic matches Transfer event
+      if (log.topics[0] !== '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef') continue;
+
+      // Decode: topics[1] = from, topics[2] = to, data = value
+      const from = ('0x' + log.topics[1]!.slice(26)).toLowerCase();
+      const to = ('0x' + log.topics[2]!.slice(26)).toLowerCase();
+      const value = BigInt(log.data);
+
+      if (to === expectedTo.toLowerCase() && value >= minAmount) {
+        return { valid: true, amount: value, from };
+      }
+    }
+
+    return { valid: false, amount: 0n, from: '', error: 'No matching cUSD transfer found in TX' };
+  } catch (err: any) {
+    return { valid: false, amount: 0n, from: '', error: `TX verification failed: ${err.message}` };
+  }
+}
 
 /**
  * x402 Payment Middleware
  *
- * For non-owner calls to paid agents:
- * - Returns HTTP 402 with payment requirements
- * - If payment header present, validates format (actual settlement deferred to mainnet)
- *
- * x402 response format:
- * {
- *   "x402Version": 1,
- *   "accepts": [{
- *     "scheme": "exact",
- *     "network": "celo",
- *     "maxAmountRequired": "50000000000000000",
- *     "resource": "https://api.celospawn.xyz/v1/agents/1/chat",
- *     "payTo": "0x...",
- *     "asset": "0x765DE816845861e75A25fCA122bb6898B8B1282a"
- *   }]
- * }
+ * Flow:
+ * 1. Owner calls → free, pass through
+ * 2. Non-owner without payment → return HTTP 402 with pricing
+ * 3. Non-owner with x-payment-txhash → verify on-chain cUSD transfer → allow if valid
  */
 export async function x402Middleware(c: Context, next: Next) {
-  // Only applies to chat endpoint
   const path = c.req.path;
   const match = path.match(/\/agents\/(\d+)\/chat/);
   if (!match) return next();
@@ -39,7 +78,7 @@ export async function x402Middleware(c: Context, next: Next) {
     const body = await cloned.json();
     callerAddress = body?.callerAddress?.toLowerCase();
   } catch {
-    return next(); // Let route handler deal with bad body
+    return next();
   }
 
   // Look up agent
@@ -48,51 +87,64 @@ export async function x402Middleware(c: Context, next: Next) {
     .where(eq(agents.agentId, agentId))
     .limit(1);
 
-  if (!agent) return next(); // Let route handler return 404
+  if (!agent) return next();
 
   // Owner calls are free
   if (callerAddress === agent.ownerAddress.toLowerCase()) {
     return next();
   }
 
-  // Check for payment header (x402 v1 or v2)
-  const paymentHeader = c.req.header('x-payment') || c.req.header('payment-signature');
+  // Check for payment TX hash
+  const txHash = c.req.header('x-payment-txhash');
 
-  if (!paymentHeader) {
+  if (!txHash) {
     // Return 402 with payment requirements
-    const cUSD = '0x765DE816845861e75A25fCA122bb6898B8B1282a'; // Celo Mainnet cUSD
-
     return c.json({
       x402Version: 1,
       accepts: [{
         scheme: 'exact',
         network: 'celo',
         maxAmountRequired: agent.pricePerCall,
-        resource: `${c.req.url}`,
+        resource: c.req.url,
         payTo: agent.agentWallet,
         asset: cUSD,
-        description: `Chat with ${agent.name} — ${agent.pricePerCall} wei cUSD per call`,
+        description: `Chat with ${agent.name} — pay ${agent.pricePerCall} wei cUSD`,
       }],
     }, 402);
   }
 
-  // Store payment info in a custom header for downstream (avoids Hono typed context issues)
-  c.res.headers.set('x-payment-verified', 'true');
-  c.res.headers.set('x-payment-revenue', agent.pricePerCall);
+  // Verify the on-chain TX
+  const verification = await verifyPaymentTx(
+    txHash as Hex,
+    agent.agentWallet,
+    BigInt(agent.pricePerCall),
+  );
+
+  if (!verification.valid) {
+    return c.json({
+      error: 'Payment verification failed',
+      detail: verification.error,
+      required: {
+        payTo: agent.agentWallet,
+        amount: agent.pricePerCall,
+        asset: cUSD,
+      },
+    }, 402);
+  }
+
+  console.log(`✅ Payment verified: ${txHash} — ${verification.amount} wei cUSD from ${verification.from}`);
 
   return next();
 }
 
 /**
- * Check if a payment was verified by x402 middleware
+ * Get payment info from request headers
  */
 export function getPaymentInfo(c: Context): { revenue: string; txHash: string | null } | null {
-  const paymentHeader = c.req.header('x-payment') || c.req.header('payment-signature');
-  if (!paymentHeader) return null;
-  
-  // If we reach here in chat handler, x402 middleware already validated
+  const txHash = c.req.header('x-payment-txhash');
+  if (!txHash) return null;
   return {
-    revenue: '0', // Will be set from agent price lookup in chat handler
-    txHash: null,
+    revenue: '0', // Will be resolved from agent in chat handler
+    txHash,
   };
 }
