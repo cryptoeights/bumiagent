@@ -75,14 +75,48 @@ export default function DeployPage() {
 
           {success ? (
             /* Success state */
-            <div className="p-8 rounded-2xl border border-[var(--celo-green)]/30 bg-[var(--celo-green)]/5 text-center">
-              <div className="text-5xl mb-4">🎉</div>
-              <h2 className="text-xl font-bold mb-2 text-[var(--celo-green)]">Agent Deployed!</h2>
-              <div className="space-y-2 text-sm text-zinc-400 mb-6">
-                <p><span className="text-zinc-300">{success.name}</span> is live</p>
-                <p className="font-mono text-xs break-all">Wallet: {success.agentWallet}</p>
-                <p className="font-mono text-xs">ID: #{success.agentId}</p>
+            <div className="p-8 rounded-2xl border border-[var(--celo-green)]/30 bg-[var(--celo-green)]/5">
+              <div className="text-center mb-6">
+                <div className="text-5xl mb-4">🎉</div>
+                <h2 className="text-xl font-bold mb-2 text-[var(--celo-green)]">Agent Deployed!</h2>
+                <p className="text-sm text-zinc-400"><span className="text-zinc-300">{success.name}</span> is live</p>
               </div>
+
+              <div className="space-y-3 mb-6">
+                {/* Agent ID */}
+                <div className="p-3 rounded-lg bg-zinc-900/50 border border-zinc-800/50">
+                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Agent ID</div>
+                  <div className="font-mono text-sm text-zinc-200">#{success.agentId}</div>
+                </div>
+
+                {/* Wallet Address */}
+                <div className="p-3 rounded-lg bg-zinc-900/50 border border-zinc-800/50">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Agent Wallet</span>
+                    <button
+                      onClick={() => navigator.clipboard.writeText(success.agentWallet)}
+                      className="text-[10px] text-[var(--celo-green)] hover:underline"
+                    >Copy</button>
+                  </div>
+                  <div className="font-mono text-xs text-zinc-300 break-all">{success.agentWallet}</div>
+                </div>
+
+                {/* Private Key — WARNING */}
+                <div className="p-3 rounded-lg bg-red-500/5 border border-red-500/20">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] text-red-400 uppercase tracking-wider font-semibold">⚠️ Private Key — Save Now!</span>
+                    <button
+                      onClick={() => navigator.clipboard.writeText(success.privateKey)}
+                      className="text-[10px] text-red-400 hover:text-red-300 font-semibold"
+                    >Copy</button>
+                  </div>
+                  <div className="font-mono text-xs text-red-300/80 break-all select-all">{success.privateKey}</div>
+                  <p className="text-[10px] text-red-400/60 mt-2">
+                    This is the ONLY time you&apos;ll see this. Save it somewhere safe. You need it to withdraw funds from your agent&apos;s wallet.
+                  </p>
+                </div>
+              </div>
+
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={() => router.push(`/chat/${success.agentId}`)}

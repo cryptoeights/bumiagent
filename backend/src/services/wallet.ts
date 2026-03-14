@@ -3,6 +3,7 @@ import { encryptPrivateKey } from './crypto.js';
 
 export interface GeneratedWallet {
   address: string;
+  privateKey: string; // Raw — returned to user ONCE at deploy time
   encryptedPrivateKey: string;
 }
 
@@ -15,6 +16,7 @@ export function generateAgentWallet(): GeneratedWallet {
 
   return {
     address: wallet.address,
+    privateKey: wallet.privateKey,
     encryptedPrivateKey: encrypted,
   };
 }

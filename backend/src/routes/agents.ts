@@ -63,6 +63,7 @@ agentRoutes.post('/', async (c) => {
       pricePerCall: agent.pricePerCall,
       ownerAddress: agent.ownerAddress,
       agentWallet: wallet.address.toLowerCase(),
+      privateKey: wallet.privateKey, // Shown ONCE at deploy — user must save this
       isActive: agent.isActive,
       createdAt: agent.createdAt,
     },

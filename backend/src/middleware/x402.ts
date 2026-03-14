@@ -98,7 +98,8 @@ export async function x402Middleware(c: Context, next: Next) {
   const txHash = c.req.header('x-payment-txhash');
 
   if (!txHash) {
-    // Return 402 with payment requirements
+    // Check if a premium model is selected — if so, the chat route handles 402 itself
+    // This middleware only handles free-model non-owner payment gating
     return c.json({
       x402Version: 1,
       accepts: [{
