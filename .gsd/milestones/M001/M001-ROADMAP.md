@@ -67,7 +67,7 @@ This milestone is complete only when all are true:
   > After this: x402 pay-per-call chat works end-to-end, premium subscriptions split to treasury/EarthPool, ERC-8183 job lifecycle (create→fund→submit→complete) works via API
 - [x] **S04: Frontend — Landing, Deploy Form, Chat** `risk:medium` `depends:[S02]`
   > After this: User can visit landing page, connect wallet, fill 3-field form to deploy an agent, and chat with it in the browser
-- [ ] **S05: Frontend — Registry, AgentScan, Dashboard** `risk:medium` `depends:[S03,S04]`
+- [x] **S05: Frontend — Registry, AgentScan, Dashboard** `risk:medium` `depends:[S03,S04]`
   > After this: Agent registry page lists all agents with search/filter, AgentScan shows per-agent on-chain data + stats, owner dashboard shows agent list with management
 - [ ] **S06: Verification, Badges, Templates + Polish** `risk:low` `depends:[S04,S05]`
   > After this: Self Protocol verification flow works, badge system renders across all surfaces, 10 templates with system prompts are live, premium subscription UI + job creation UI complete — full MVP demoable
