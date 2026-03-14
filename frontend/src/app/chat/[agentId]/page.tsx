@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { celo } from 'wagmi/chains';
 import { Navbar } from '@/components/Navbar';
 import { apiFetch } from '@/lib/api';
+import { Markdown } from '@/components/Markdown';
 import { formatCUSD } from '@/lib/constants';
 import { CUSD_ADDRESS, ERC20_ABI } from '@/lib/contracts';
 
@@ -212,7 +213,11 @@ export default function ChatPage() {
                   ? 'bg-[var(--celo-green)]/10 text-zinc-200 rounded-br-md'
                   : 'bg-zinc-800/50 text-zinc-300 rounded-bl-md border border-zinc-800/50'
               }`}>
-                <div className="whitespace-pre-wrap">{msg.content}</div>
+                {msg.role === 'user' ? (
+                  <div className="whitespace-pre-wrap">{msg.content}</div>
+                ) : (
+                  <Markdown content={msg.content} />
+                )}
               </div>
             </div>
           ))}
