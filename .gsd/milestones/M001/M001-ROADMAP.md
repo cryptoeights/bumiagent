@@ -59,7 +59,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Smart Contracts Foundation** `risk:high` `depends:[]`
+- [x] **S01: Smart Contracts Foundation** `risk:high` `depends:[]`
   > After this: All 3 contracts (SpawnRegistry, AgentCommerce, EarthPool) compile, pass Foundry tests, and deploy to local Anvil with a working Deploy.s.sol script
 - [ ] **S02: Backend Core — Agent Registration + Chat** `risk:high` `depends:[S01]`
   > After this: Backend API registers agents (wallet gen, encryption, DB), chats with agents via OpenRouter, rate-limits calls — testable via curl/httpie
