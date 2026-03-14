@@ -6,6 +6,7 @@ import { agents, callLogs } from '../db/schema.js';
 import { getTemplate } from '../data/templates.js';
 import { chatCompletion, type ChatMessage } from '../services/openrouter.js';
 import { checkRateLimit } from '../middleware/rateLimit.js';
+import { getPaymentInfo } from '../middleware/x402.js';
 import crypto from 'node:crypto';
 
 export const chatRoutes = new Hono();
@@ -21,6 +22,7 @@ chatRoutes.post('/:agentId/chat', async (c) => {
   const agentId = Number(c.req.param('agentId'));
   if (isNaN(agentId)) return c.json({ error: 'Invalid agent ID' }, 400);
 
+  // Body may have been parsed by x402 middleware (stored in header)
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: 'Invalid JSON body' }, 400);
 
@@ -72,17 +74,18 @@ chatRoutes.post('/:agentId/chat', async (c) => {
     // Log the call
     const messageHash = '0x' + crypto.createHash('sha256').update(message).digest('hex').slice(0, 64);
     const responseHash = '0x' + crypto.createHash('sha256').update(response.content).digest('hex').slice(0, 64);
+    const paymentInfo = getPaymentInfo(c);
 
     await db.insert(callLogs).values({
       agentId,
       callerAddress: callerAddress?.toLowerCase() ?? null,
       messageHash,
       responseHash,
-      revenue: '0', // Free for now — x402 in S03
+      revenue: paymentInfo?.revenue || '0',
       llmModel: response.model,
       llmTokensUsed: response.tokensUsed,
       isOwnerCall,
-      paymentTxHash: null,
+      paymentTxHash: paymentInfo?.txHash || null,
     });
 
     return c.json({

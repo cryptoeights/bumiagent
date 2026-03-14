@@ -61,7 +61,7 @@ This milestone is complete only when all are true:
 
 - [x] **S01: Smart Contracts Foundation** `risk:high` `depends:[]`
   > After this: All 3 contracts (SpawnRegistry, AgentCommerce, EarthPool) compile, pass Foundry tests, and deploy to local Anvil with a working Deploy.s.sol script
-- [ ] **S02: Backend Core — Agent Registration + Chat** `risk:high` `depends:[S01]`
+- [x] **S02: Backend Core — Agent Registration + Chat** `risk:high` `depends:[S01]`
   > After this: Backend API registers agents (wallet gen, encryption, DB), chats with agents via OpenRouter, rate-limits calls — testable via curl/httpie
 - [ ] **S03: Backend Payments — x402 + Subscriptions + Jobs** `risk:high` `depends:[S01,S02]`
   > After this: x402 pay-per-call chat works end-to-end, premium subscriptions split to treasury/EarthPool, ERC-8183 job lifecycle (create→fund→submit→complete) works via API

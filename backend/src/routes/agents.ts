@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import { agents } from '../db/schema.js';
+import { agents, callLogs, jobs } from '../db/schema.js';
 import { generateAgentWallet } from '../services/wallet.js';
 
 export const agentRoutes = new Hono();
@@ -120,4 +120,52 @@ agentRoutes.get('/:agentId', async (c) => {
   if (!agent) return c.json({ error: 'Agent not found' }, 404);
 
   return c.json({ agent });
+});
+
+// ─── GET /agents/:agentId/stats ─────────────────────────
+
+agentRoutes.get('/:agentId/stats', async (c) => {
+  const agentId = Number(c.req.param('agentId'));
+  if (isNaN(agentId)) return c.json({ error: 'Invalid agent ID' }, 400);
+
+  const [agent] = await db.select()
+    .from(agents)
+    .where(eq(agents.agentId, agentId))
+    .limit(1);
+
+  if (!agent) return c.json({ error: 'Agent not found' }, 404);
+
+  // Aggregate call stats
+  const [stats] = await db.select({
+    totalCalls: sql<number>`count(*)::int`,
+    totalRevenue: sql<string>`coalesce(sum(${callLogs.revenue}), 0)::text`,
+    ownerCalls: sql<number>`count(*) filter (where ${callLogs.isOwnerCall} = true)::int`,
+    paidCalls: sql<number>`count(*) filter (where ${callLogs.isOwnerCall} = false)::int`,
+  })
+  .from(callLogs)
+  .where(eq(callLogs.agentId, agentId));
+
+  return c.json({
+    agentId,
+    name: agent.name,
+    totalCalls: stats?.totalCalls || 0,
+    totalRevenue: stats?.totalRevenue || '0',
+    ownerCalls: stats?.ownerCalls || 0,
+    paidCalls: stats?.paidCalls || 0,
+    createdAt: agent.createdAt,
+  });
+});
+
+// ─── GET /agents/:agentId/jobs ──────────────────────────
+
+agentRoutes.get('/:agentId/jobs', async (c) => {
+  const agentId = Number(c.req.param('agentId'));
+  if (isNaN(agentId)) return c.json({ error: 'Invalid agent ID' }, 400);
+
+  const agentJobs = await db.select()
+    .from(jobs)
+    .where(eq(jobs.agentId, agentId))
+    .orderBy(desc(jobs.createdAt));
+
+  return c.json({ jobs: agentJobs });
 });

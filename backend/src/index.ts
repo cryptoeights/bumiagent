@@ -6,6 +6,9 @@ import { env } from './config/env.js';
 import { agentRoutes } from './routes/agents.js';
 import { chatRoutes } from './routes/chat.js';
 import { templateRoutes } from './routes/templates.js';
+import { jobRoutes } from './routes/jobs.js';
+import { subscriptionRoutes } from './routes/subscriptions.js';
+import { x402Middleware } from './middleware/x402.js';
 
 const app = new Hono().basePath('/api');
 
@@ -19,10 +22,15 @@ app.use('*', cors({
 // Health check
 app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
+// x402 payment middleware (before chat route)
+app.use('/agents/:agentId/chat', x402Middleware);
+
 // Routes
 app.route('/agents', agentRoutes);
 app.route('/agents', chatRoutes);
+app.route('/agents', subscriptionRoutes);
 app.route('/templates', templateRoutes);
+app.route('/jobs', jobRoutes);
 
 // Start
 console.log(`🚀 CeloSpawn API starting on port ${env.PORT}`);
