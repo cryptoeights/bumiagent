@@ -69,7 +69,7 @@ This milestone is complete only when all are true:
   > After this: User can visit landing page, connect wallet, fill 3-field form to deploy an agent, and chat with it in the browser
 - [x] **S05: Frontend — Registry, AgentScan, Dashboard** `risk:medium` `depends:[S03,S04]`
   > After this: Agent registry page lists all agents with search/filter, AgentScan shows per-agent on-chain data + stats, owner dashboard shows agent list with management
-- [ ] **S06: Verification, Badges, Templates + Polish** `risk:low` `depends:[S04,S05]`
+- [x] **S06: Verification, Badges, Templates + Polish** `risk:low` `depends:[S04,S05]`
   > After this: Self Protocol verification flow works, badge system renders across all surfaces, 10 templates with system prompts are live, premium subscription UI + job creation UI complete — full MVP demoable
 
 ## Boundary Map
