@@ -8,6 +8,7 @@ import { chatRoutes } from './routes/chat.js';
 import { templateRoutes } from './routes/templates.js';
 import { jobRoutes } from './routes/jobs.js';
 import { subscriptionRoutes } from './routes/subscriptions.js';
+import { conversationRoutes } from './routes/conversations.js';
 import { x402Middleware } from './middleware/x402.js';
 
 const app = new Hono().basePath('/api');
@@ -31,6 +32,7 @@ app.route('/agents', chatRoutes);
 app.route('/agents', subscriptionRoutes);
 app.route('/templates', templateRoutes);
 app.route('/jobs', jobRoutes);
+app.route('/conversations', conversationRoutes);
 
 // Start
 console.log(`🚀 CeloSpawn API starting on port ${env.PORT}`);

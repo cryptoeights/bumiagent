@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, varchar, text, numeric, boolean, timestamp, smallint } from 'drizzle-orm/pg-core';
+import { pgTable, serial, integer, varchar, text, numeric, boolean, timestamp, smallint, jsonb } from 'drizzle-orm/pg-core';
 
 export const agents = pgTable('agents', {
   id: serial('id').primaryKey(),
@@ -44,4 +44,14 @@ export const jobs = pgTable('jobs', {
   fundedAt: timestamp('funded_at'),
   submittedAt: timestamp('submitted_at'),
   completedAt: timestamp('completed_at'),
+});
+
+export const conversations = pgTable('conversations', {
+  id: serial('id').primaryKey(),
+  agentId: integer('agent_id').notNull(),
+  userAddress: varchar('user_address', { length: 42 }).notNull(),
+  title: varchar('title', { length: 200 }).notNull(),
+  messages: jsonb('messages').notNull().default('[]'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });

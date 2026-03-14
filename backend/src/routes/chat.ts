@@ -14,6 +14,10 @@ export const chatRoutes = new Hono();
 const chatSchema = z.object({
   message: z.string().min(1).max(10000),
   callerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional(),
+  history: z.array(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string(),
+  })).max(50).optional(),
 });
 
 // ─── POST /agents/:agentId/chat ─────────────────────────
@@ -31,7 +35,7 @@ chatRoutes.post('/:agentId/chat', async (c) => {
     return c.json({ error: 'Validation failed', details: parsed.error.issues }, 400);
   }
 
-  const { message, callerAddress } = parsed.data;
+  const { message, callerAddress, history } = parsed.data;
 
   // Look up agent
   const [agent] = await db.select()
@@ -64,6 +68,8 @@ chatRoutes.post('/:agentId/chat', async (c) => {
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
+    // Include conversation history for context (last 20 messages max)
+    ...(history || []).slice(-20).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
     { role: 'user', content: message },
   ];
 
