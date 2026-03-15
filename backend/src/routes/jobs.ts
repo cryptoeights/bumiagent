@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { jobs, agents } from '../db/schema.js';
+import { chatCompletion, type ChatMessage } from '../services/openrouter.js';
+import { getTemplate } from '../data/templates.js';
 
 export const jobRoutes = new Hono();
 
@@ -105,6 +107,11 @@ jobRoutes.post('/:jobId/fund', async (c) => {
     .set({ status: 'funded', fundedAt: new Date() })
     .where(eq(jobs.jobId, jobId));
 
+  // Auto-process: agent generates deliverable in background
+  processJobInBackground(jobId).catch(err =>
+    console.error(`[jobs] Auto-process failed for job ${jobId}:`, err)
+  );
+
   return c.json({ success: true, jobId, status: 'funded' });
 });
 
@@ -198,6 +205,21 @@ jobRoutes.post('/:jobId/reject', async (c) => {
   return c.json({ success: true, jobId, status: 'rejected' });
 });
 
+// ─── POST /jobs/:jobId/process — Retry processing ──────
+
+jobRoutes.post('/:jobId/process', async (c) => {
+  const jobId = Number(c.req.param('jobId'));
+  const job = await getJob(jobId);
+  if (!job) return c.json({ error: 'Job not found' }, 404);
+  if (job.status !== 'funded') return c.json({ error: `Job is ${job.status}, must be funded to process` }, 400);
+
+  processJobInBackground(jobId).catch(err =>
+    console.error(`[jobs] Manual process failed for job ${jobId}:`, err)
+  );
+
+  return c.json({ success: true, jobId, message: 'Processing started — agent is working on it' });
+});
+
 // ─── GET /jobs/:jobId ───────────────────────────────────
 
 jobRoutes.get('/:jobId', async (c) => {
@@ -209,6 +231,65 @@ jobRoutes.get('/:jobId', async (c) => {
 
   return c.json({ job });
 });
+
+// ─── Auto-Process Job ───────────────────────────────────
+
+async function processJobInBackground(jobId: number) {
+  // Small delay to let the fund response return first
+  await new Promise(r => setTimeout(r, 1000));
+
+  const job = await getJob(jobId);
+  if (!job || job.status !== 'funded') return;
+
+  // Get the agent and its template
+  const [agent] = await db.select()
+    .from(agents)
+    .where(eq(agents.agentId, job.agentId))
+    .limit(1);
+
+  if (!agent) {
+    console.error(`[jobs] Agent ${job.agentId} not found for job ${jobId}`);
+    return;
+  }
+
+  const template = getTemplate(agent.templateId);
+  const basePrompt = template?.systemPrompt || 'You are a helpful AI assistant.';
+  const systemPrompt = agent.customSystemPrompt
+    ? `${basePrompt}\n\n---\n\n## Agent Skills\n\n${agent.customSystemPrompt}`
+    : basePrompt;
+
+  const messages: ChatMessage[] = [
+    { role: 'system', content: systemPrompt },
+    {
+      role: 'user',
+      content: `You have been hired for a job. Complete the following task thoroughly and deliver a high-quality result.\n\n## Job Description\n\n${job.description}\n\n## Instructions\n- Provide a complete, detailed deliverable\n- Be thorough and professional\n- Format your response in clean markdown`,
+    },
+  ];
+
+  console.log(`[jobs] Processing job #${jobId} for agent ${agent.name}...`);
+
+  try {
+    const result = await chatCompletion(messages);
+    const resultText = result.content;
+    // Generate a pseudo-IPFS CID from the content hash
+    const cidHash = Buffer.from(resultText.slice(0, 64)).toString('base64url').slice(0, 46);
+    const deliverableCid = `Qm${cidHash}`;
+
+    await db.update(jobs)
+      .set({
+        status: 'submitted',
+        resultText,
+        deliverableIpfsCid: deliverableCid,
+        submittedAt: new Date(),
+      })
+      .where(eq(jobs.jobId, jobId));
+
+    console.log(`[jobs] Job #${jobId} completed by agent ${agent.name} (${resultText.length} chars)`);
+  } catch (err) {
+    console.error(`[jobs] LLM failed for job #${jobId}:`, err);
+    // Don't change status — stays funded, can be retried
+  }
+}
 
 // ─── Helpers ────────────────────────────────────────────
 

@@ -83,6 +83,15 @@ export default function AgentScanPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agentId]);
 
+  // Poll while any job is "funded" (agent processing)
+  useEffect(() => {
+    const hasPending = jobs.some(j => j.status === 'funded');
+    if (!hasPending) return;
+    const interval = setInterval(loadData, 5000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobs]);
+
   async function loadData() {
     try {
       const [a, s, j] = await Promise.all([
@@ -582,7 +591,12 @@ export default function AgentScanPage() {
                           </div>
 
                           {/* Action Buttons */}
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
+                            {job.status === 'funded' && (
+                              <span className="px-4 py-2 rounded-lg text-xs font-semibold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 animate-pulse">
+                                🤖 Agent is working on this...
+                              </span>
+                            )}
                             {canFund(job) && (
                               <button
                                 onClick={() => handleFundJob(job)}
