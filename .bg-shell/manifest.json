@@ -1,17 +1,5 @@
 [
   {
-    "id": "5e1def68",
-    "label": "backend",
-    "command": "cd /Users/pebriansyah/Desktop/celospawnag/backend && npm run dev",
-    "cwd": "/Users/pebriansyah/Desktop/celospawnag",
-    "startedAt": 1773541780062,
-    "processType": "server",
-    "group": "celospawn",
-    "readyPattern": null,
-    "readyPort": 3001,
-    "pid": 41064
-  },
-  {
     "id": "a519157e",
     "label": "frontend",
     "command": "cd /Users/pebriansyah/Desktop/celospawnag/frontend && npm run dev",
@@ -22,5 +10,17 @@
     "readyPattern": null,
     "readyPort": 3000,
     "pid": 41090
+  },
+  {
+    "id": "39fc8b3d",
+    "label": "backend",
+    "command": "cd /Users/pebriansyah/Desktop/celospawnag/backend && npm run dev",
+    "cwd": "/Users/pebriansyah/Desktop/celospawnag",
+    "startedAt": 1773542075158,
+    "processType": "server",
+    "group": "celospawn",
+    "readyPattern": null,
+    "readyPort": 3001,
+    "pid": 46061
   }
 ]

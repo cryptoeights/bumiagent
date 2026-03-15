@@ -72,6 +72,33 @@ agentRoutes.post('/', async (c) => {
   }, 201);
 });
 
+// ─── GET /agents/top — Top agents by usage ──────────────
+
+agentRoutes.get('/top', async (c) => {
+  const limit = Math.min(Number(c.req.query('limit') || 3), 10);
+
+  const results = await db.select({
+    id: agents.id,
+    agentId: agents.agentId,
+    name: agents.name,
+    description: agents.description,
+    logoUrl: agents.logoUrl,
+    templateId: agents.templateId,
+    pricePerCall: agents.pricePerCall,
+    selfVerified: agents.selfVerified,
+    subscriptionTier: agents.subscriptionTier,
+    totalCalls: sql<number>`count(${callLogs.id})::int`,
+  })
+  .from(agents)
+  .leftJoin(callLogs, eq(agents.agentId, callLogs.agentId))
+  .where(eq(agents.isActive, true))
+  .groupBy(agents.id)
+  .orderBy(sql`count(${callLogs.id}) desc`, desc(agents.createdAt))
+  .limit(limit);
+
+  return c.json({ agents: results });
+});
+
 // ─── GET /agents — List agents ──────────────────────────
 
 agentRoutes.get('/', async (c) => {

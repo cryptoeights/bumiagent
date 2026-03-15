@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
+import { TopAgents } from '@/components/TopAgents';
 
 const FEATURES = [
   { icon: '⚡', title: '10 Seconds', desc: 'Name it. Pick a template. Set your price. Done.' },
@@ -109,6 +110,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Top Agents */}
+      <TopAgents />
 
       {/* Templates */}
       <section className="py-20 px-6 border-t border-zinc-800/30">
