@@ -281,7 +281,11 @@ export default function AgentScanPage() {
 
   function canFund(job: Job) { return job.status === 'open' && address?.toLowerCase() === job.clientAddress.toLowerCase(); }
   function canComplete(job: Job) { return job.status === 'submitted' && address?.toLowerCase() === job.clientAddress.toLowerCase(); }
-  function canReject(job: Job) { return ['open', 'funded', 'submitted'].includes(job.status) && address?.toLowerCase() === job.clientAddress.toLowerCase(); }
+  function canReject(job: Job) {
+    if (!['open', 'funded', 'submitted'].includes(job.status)) return false;
+    const addr = address?.toLowerCase();
+    return addr === job.clientAddress.toLowerCase() || addr === agent?.ownerAddress?.toLowerCase();
+  }
 
   return (
     <div className="noise-bg grid-bg min-h-screen">
@@ -679,6 +683,11 @@ export default function AgentScanPage() {
                             {job.status === 'completed' && (
                               <span className="px-4 py-2 rounded-lg text-xs font-semibold bg-green-500/10 text-green-400">
                                 ✅ Completed — {formatCUSD((BigInt(job.budget) * BigInt(95) / BigInt(100)).toString())} cUSD paid out
+                              </span>
+                            )}
+                            {job.status === 'rejected' && (
+                              <span className="px-4 py-2 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400">
+                                ❌ Rejected — job cancelled
                               </span>
                             )}
                           </div>

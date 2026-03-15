@@ -213,6 +213,15 @@ jobRoutes.post('/:jobId/reject', async (c) => {
   const job = await getJob(jobId);
   if (!job) return c.json({ error: 'Job not found' }, 404);
 
+  // Allow client or agent owner to reject
+  const caller = parsed.data.callerAddress.toLowerCase();
+  const [agent] = await db.select({ ownerAddress: agents.ownerAddress })
+    .from(agents).where(eq(agents.agentId, job.agentId)).limit(1);
+
+  if (caller !== job.clientAddress && caller !== agent?.ownerAddress) {
+    return c.json({ error: 'Only client or agent owner can reject' }, 403);
+  }
+
   const transitionError = validateTransition(job.status as JobStatus, 'rejected');
   if (transitionError) return c.json({ error: transitionError }, 400);
 
