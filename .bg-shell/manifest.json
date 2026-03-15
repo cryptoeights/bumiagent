@@ -10,17 +10,5 @@
     "readyPattern": null,
     "readyPort": 3001,
     "pid": 46061
-  },
-  {
-    "id": "b3d4eadb",
-    "label": "frontend",
-    "command": "cd /Users/pebriansyah/Desktop/celospawnag/frontend && npm run dev",
-    "cwd": "/Users/pebriansyah/Desktop/celospawnag",
-    "startedAt": 1773544062653,
-    "processType": "server",
-    "group": "celospawn",
-    "readyPattern": null,
-    "readyPort": 3000,
-    "pid": 79225
   }
 ]
