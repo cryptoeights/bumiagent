@@ -75,7 +75,7 @@ subscriptionRoutes.post('/:agentId/subscribe', async (c) => {
   }
 
   // TODO: verify TX receipt on-chain (same pattern as x402 middleware)
-  // For hackathon MVP: trust the txHash and flip tier
+  // For MVP: trust the txHash and flip tier
 
   await db.update(agents)
     .set({ subscriptionTier: 'premium', updatedAt: new Date() })

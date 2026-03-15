@@ -36,7 +36,7 @@ export default function Home() {
         <div className="relative max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--celo-green)]/20 bg-[var(--celo-green)]/5 text-[var(--celo-green)] text-xs font-mono mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--celo-green)] animate-pulse-green" />
-            Built on Celo • Synthesis Hackathon 2026
+            Built on Celo 🌱
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
@@ -152,11 +152,7 @@ export default function Home() {
       <footer className="border-t border-zinc-800/30 py-8 px-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between text-xs text-zinc-600">
           <span className="font-[var(--font-display)]">Bumi Agent © 2026</span>
-          <div className="flex items-center gap-4">
-            <span>Built for Synthesis Hackathon</span>
-            <span>•</span>
-            <span>Powered by Celo 🌱</span>
-          </div>
+          <span>Powered by Celo 🌱</span>
         </div>
       </footer>
     </div>
