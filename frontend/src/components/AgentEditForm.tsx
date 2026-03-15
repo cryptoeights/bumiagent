@@ -2,6 +2,13 @@
 
 import { useState } from 'react';
 import { apiFetch } from '@/lib/api';
+import { formatCUSD } from '@/lib/constants';
+
+interface Service {
+  name: string;
+  description?: string;
+  price: string;
+}
 
 interface Props {
   agent: {
@@ -10,9 +17,10 @@ interface Props {
     description: string;
     logoUrl: string;
     customSystemPrompt: string;
+    services: Service[];
     ownerAddress: string;
   };
-  onSaved: (updated: { name: string; description: string; logoUrl: string; customSystemPrompt: string }) => void;
+  onSaved: (updated: { name: string; description: string; logoUrl: string; customSystemPrompt: string; services: Service[] }) => void;
   onCancel: () => void;
 }
 
@@ -21,11 +29,36 @@ export function AgentEditForm({ agent, onSaved, onCancel }: Props) {
   const [description, setDescription] = useState(agent.description || '');
   const [logoUrl, setLogoUrl] = useState(agent.logoUrl || '');
   const [skillMd, setSkillMd] = useState(agent.customSystemPrompt || '');
+  const [services, setServices] = useState<Service[]>(agent.services || []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  function addService() {
+    if (services.length >= 10) return;
+    setServices([...services, { name: '', description: '', price: '1000000000000000000' }]);
+  }
+
+  function updateService(i: number, field: keyof Service, value: string) {
+    const updated = [...services];
+    updated[i] = { ...updated[i], [field]: value };
+    setServices(updated);
+  }
+
+  function removeService(i: number) {
+    setServices(services.filter((_, idx) => idx !== i));
+  }
+
   async function handleSave() {
     if (!name.trim()) return setError('Name is required');
+    
+    // Validate services
+    const validServices = services.filter(s => s.name.trim());
+    for (const svc of validServices) {
+      if (!svc.price || BigInt(svc.price) <= 0) {
+        return setError(`Service "${svc.name}" needs a valid price`);
+      }
+    }
+
     setSaving(true);
     setError('');
 
@@ -37,10 +70,21 @@ export function AgentEditForm({ agent, onSaved, onCancel }: Props) {
           description: description.trim(),
           logoUrl: logoUrl.trim(),
           customSystemPrompt: skillMd.trim(),
+          services: validServices.map(s => ({
+            name: s.name.trim(),
+            description: s.description?.trim() || undefined,
+            price: s.price,
+          })),
           ownerAddress: agent.ownerAddress,
         }),
       });
-      onSaved({ name: name.trim(), description: description.trim(), logoUrl: logoUrl.trim(), customSystemPrompt: skillMd.trim() });
+      onSaved({
+        name: name.trim(),
+        description: description.trim(),
+        logoUrl: logoUrl.trim(),
+        customSystemPrompt: skillMd.trim(),
+        services: validServices,
+      });
     } catch (err: any) {
       setError(err.error || 'Failed to save');
     } finally {
@@ -122,6 +166,66 @@ export function AgentEditForm({ agent, onSaved, onCancel }: Props) {
         </div>
       </div>
 
+      {/* Services / Pricing */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-[10px] text-zinc-500 uppercase tracking-wider">Services & Pricing</label>
+          <button
+            type="button"
+            onClick={addService}
+            disabled={services.length >= 10}
+            className="text-[10px] text-[var(--celo-violet)] hover:underline disabled:opacity-30"
+          >
+            + Add Service
+          </button>
+        </div>
+        {services.length === 0 ? (
+          <p className="text-[10px] text-zinc-600 py-2">No services defined — clients set their own budget for jobs</p>
+        ) : (
+          <div className="space-y-2">
+            {services.map((svc, i) => (
+              <div key={i} className="p-2.5 rounded-lg bg-zinc-800/50 border border-zinc-700/50 space-y-1.5">
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={svc.name}
+                    onChange={e => updateService(i, 'name', e.target.value)}
+                    placeholder="Service name"
+                    maxLength={100}
+                    className="flex-1 px-2 py-1.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs focus:outline-none focus:border-[var(--celo-violet)]/50"
+                  />
+                  <div className="flex items-center gap-1 shrink-0">
+                    <input
+                      type="number"
+                      value={Number(svc.price) / 1e18}
+                      onChange={e => {
+                        const val = parseFloat(e.target.value) || 0;
+                        updateService(i, 'price', BigInt(Math.round(val * 1e18)).toString());
+                      }}
+                      min="0.01"
+                      step="0.1"
+                      className="w-20 px-2 py-1.5 rounded bg-zinc-800 border border-zinc-700 text-[var(--celo-gold)] text-xs font-mono text-right focus:outline-none focus:border-[var(--celo-gold)]/50"
+                    />
+                    <span className="text-[10px] text-zinc-600">cUSD</span>
+                  </div>
+                  <button type="button" onClick={() => removeService(i)}
+                    className="text-red-500 hover:text-red-400 text-xs">✕</button>
+                </div>
+                <input
+                  type="text"
+                  value={svc.description || ''}
+                  onChange={e => updateService(i, 'description', e.target.value)}
+                  placeholder="Brief description (optional)"
+                  maxLength={300}
+                  className="w-full px-2 py-1 rounded bg-zinc-800/50 border border-zinc-700/30 text-zinc-400 text-[10px] focus:outline-none focus:border-[var(--celo-violet)]/30"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="text-[10px] text-zinc-600 mt-1">Clients must pick a service when creating a job. Max 10 services.</p>
+      </div>
+
       {/* Skill.md */}
       <div>
         <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Agent Skills (skill.md)</label>
@@ -129,11 +233,11 @@ export function AgentEditForm({ agent, onSaved, onCancel }: Props) {
           value={skillMd}
           onChange={e => setSkillMd(e.target.value)}
           maxLength={10000}
-          rows={6}
+          rows={4}
           placeholder="# Capabilities&#10;- Analyze DeFi protocols&#10;&#10;# Rules&#10;- Always mention risks"
           className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs font-mono focus:outline-none focus:border-[var(--celo-green)]/50 resize-y leading-relaxed"
         />
-        <p className="text-[10px] text-zinc-600 mt-0.5">{skillMd.length}/10,000 · Appended to template prompt</p>
+        <p className="text-[10px] text-zinc-600 mt-0.5">{skillMd.length}/10,000</p>
       </div>
 
       {error && <p className="text-xs text-red-400">{error}</p>}

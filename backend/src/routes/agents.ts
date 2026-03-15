@@ -90,6 +90,7 @@ agentRoutes.get('/', async (c) => {
     agentWallet: agents.agentWallet,
     isActive: agents.isActive,
     selfVerified: agents.selfVerified,
+    services: agents.services,
     subscriptionTier: agents.subscriptionTier,
     createdAt: agents.createdAt,
   })
@@ -104,11 +105,18 @@ agentRoutes.get('/', async (c) => {
 
 // ─── PATCH /agents/:agentId — Update agent (owner only) ──
 
+const serviceSchema = z.object({
+  name: z.string().min(1).max(100),
+  description: z.string().max(300).optional(),
+  price: z.string().regex(/^\d+$/, 'Must be numeric string (wei)'),
+});
+
 const updateAgentSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
   logoUrl: z.string().max(200000).optional().or(z.literal('')),
   customSystemPrompt: z.string().max(10000).optional(),
+  services: z.array(serviceSchema).max(10).optional(),
   ownerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
 });
 
@@ -135,13 +143,14 @@ agentRoutes.patch('/:agentId', async (c) => {
   if (parsed.data.description !== undefined) updates.description = parsed.data.description;
   if (parsed.data.logoUrl !== undefined) updates.logoUrl = parsed.data.logoUrl;
   if (parsed.data.customSystemPrompt !== undefined) updates.customSystemPrompt = parsed.data.customSystemPrompt;
+  if (parsed.data.services !== undefined) updates.services = JSON.stringify(parsed.data.services);
 
   const [updated] = await db.update(agents)
     .set(updates)
     .where(eq(agents.agentId, agentId))
     .returning();
 
-  return c.json({ agent: { agentId: updated.agentId, name: updated.name, description: updated.description, logoUrl: updated.logoUrl, customSystemPrompt: updated.customSystemPrompt } });
+  return c.json({ agent: { agentId: updated.agentId, name: updated.name, description: updated.description, logoUrl: updated.logoUrl, customSystemPrompt: updated.customSystemPrompt, services: updated.services } });
 });
 
 // ─── GET /agents/:agentId — Agent detail ────────────────
@@ -163,6 +172,7 @@ agentRoutes.get('/:agentId', async (c) => {
     agentWallet: agents.agentWallet,
     isActive: agents.isActive,
     selfVerified: agents.selfVerified,
+    services: agents.services,
     subscriptionTier: agents.subscriptionTier,
     createdAt: agents.createdAt,
     updatedAt: agents.updatedAt,

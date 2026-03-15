@@ -16,6 +16,7 @@ export const agents = pgTable('agents', {
   isActive: boolean('is_active').default(true),
   selfVerified: boolean('self_verified').default(false),
   selfAgentId: integer('self_agent_id'),
+  services: jsonb('services').notNull().default('[]'),
   subscriptionTier: varchar('subscription_tier', { length: 10 }).notNull().default('free'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),

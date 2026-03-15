@@ -11,6 +11,12 @@ import { apiFetch } from '@/lib/api';
 import { CUSD_ADDRESS, ERC20_ABI } from '@/lib/contracts';
 import { getTemplate, formatCUSD, shortenAddress, TRUST_TIERS, getTrustTier } from '@/lib/constants';
 
+interface AgentService {
+  name: string;
+  description?: string;
+  price: string; // wei
+}
+
 interface AgentDetail {
   agentId: number;
   name: string;
@@ -23,6 +29,7 @@ interface AgentDetail {
   isActive: boolean;
   selfVerified: boolean;
   subscriptionTier: string;
+  services: AgentService[];
   createdAt: string;
 }
 
@@ -67,6 +74,7 @@ export default function AgentScanPage() {
   const [showCreateJob, setShowCreateJob] = useState(false);
   const [jobDesc, setJobDesc] = useState('');
   const [jobBudget, setJobBudget] = useState('1');
+  const [selectedService, setSelectedService] = useState<AgentService | null>(null);
   const [creatingJob, setCreatingJob] = useState(false);
   const [jobError, setJobError] = useState('');
   const [jobSuccess, setJobSuccess] = useState('');
@@ -146,9 +154,19 @@ export default function AgentScanPage() {
 
   async function handleCreateJob() {
     if (!address || !agent) return;
+    const hasServices = agent.services && agent.services.length > 0;
+    
+    if (hasServices && !selectedService) return setJobError('Select a service');
     if (!jobDesc.trim()) return setJobError('Description is required');
-    const budgetFloat = parseFloat(jobBudget);
-    if (isNaN(budgetFloat) || budgetFloat <= 0) return setJobError('Budget must be > 0');
+    
+    let budgetWei: string;
+    if (selectedService) {
+      budgetWei = selectedService.price;
+    } else {
+      const budgetFloat = parseFloat(jobBudget);
+      if (isNaN(budgetFloat) || budgetFloat <= 0) return setJobError('Budget must be > 0');
+      budgetWei = BigInt(Math.round(budgetFloat * 1e18)).toString();
+    }
 
     if (chainId !== celo.id) { switchChain({ chainId: celo.id }); return; }
 
@@ -157,13 +175,14 @@ export default function AgentScanPage() {
     setJobSuccess('');
 
     try {
-      const budgetWei = BigInt(Math.round(budgetFloat * 1e18)).toString();
       const res = await apiFetch<{ success: boolean; job: Job }>('/jobs', {
         method: 'POST',
         body: JSON.stringify({
           agentId: agent.agentId,
           clientAddress: address,
-          description: jobDesc.trim(),
+          description: selectedService
+            ? `[${selectedService.name}] ${jobDesc.trim()}`
+            : jobDesc.trim(),
           budget: budgetWei,
         }),
       });
@@ -171,6 +190,7 @@ export default function AgentScanPage() {
       setJobSuccess(`Job #${res.job.jobId} created! Fund it to start.`);
       setJobDesc('');
       setJobBudget('1');
+      setSelectedService(null);
       setShowCreateJob(false);
       loadData();
     } catch (err: any) {
@@ -408,6 +428,30 @@ export default function AgentScanPage() {
             </div>
           )}
 
+          {/* Agent Services */}
+          {agent.services && (agent.services as AgentService[]).length > 0 && (
+            <div className="rounded-xl border border-zinc-800/50 bg-zinc-900/30 overflow-hidden mb-6">
+              <div className="px-5 py-3 border-b border-zinc-800/50">
+                <h3 className="font-bold text-sm">Services & Pricing</h3>
+              </div>
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(agent.services as AgentService[]).map((svc, i) => (
+                  <div key={i} className="p-3 rounded-lg border border-zinc-800 bg-zinc-900/50">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="text-sm font-semibold text-zinc-200">{svc.name}</span>
+                      <span className="text-sm font-mono font-bold text-[var(--celo-gold)] shrink-0 ml-2">
+                        {formatCUSD(svc.price)} cUSD
+                      </span>
+                    </div>
+                    {svc.description && (
+                      <p className="text-xs text-zinc-500">{svc.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Feedback messages */}
           {jobSuccess && (
             <div className="mb-4 px-4 py-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-sm">
@@ -438,37 +482,81 @@ export default function AgentScanPage() {
             {showCreateJob && (
               <div className="px-5 py-4 border-b border-zinc-800/50 bg-zinc-900/50">
                 <div className="space-y-3">
+                  {/* Service Selection */}
+                  {agent.services && agent.services.length > 0 && (
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-2">
+                        Select Service
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {(agent.services as AgentService[]).map((svc, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setSelectedService(selectedService?.name === svc.name ? null : svc)}
+                            className={`text-left p-3 rounded-lg border-2 transition-all ${
+                              selectedService?.name === svc.name
+                                ? 'border-[var(--celo-violet)] bg-[var(--celo-violet)]/10'
+                                : 'border-zinc-700 bg-zinc-800/50 hover:border-zinc-600'
+                            }`}
+                          >
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="text-sm font-semibold text-zinc-200">{svc.name}</span>
+                              <span className="text-xs font-mono text-[var(--celo-gold)] shrink-0 ml-2">
+                                {formatCUSD(svc.price)} cUSD
+                              </span>
+                            </div>
+                            {svc.description && (
+                              <p className="text-[10px] text-zinc-500">{svc.description}</p>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">
-                      Job Description
+                      {agent.services && agent.services.length > 0 ? 'Additional Details' : 'Job Description'}
                     </label>
                     <textarea
                       value={jobDesc}
                       onChange={e => setJobDesc(e.target.value)}
-                      placeholder="Describe what you want the agent to do..."
+                      placeholder={agent.services && agent.services.length > 0
+                        ? "Add any specific instructions or details..."
+                        : "Describe what you want the agent to do..."}
                       rows={3}
                       maxLength={5000}
                       className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm placeholder-zinc-600 focus:outline-none focus:border-[var(--celo-violet)]/50 resize-none"
                     />
                   </div>
                   <div className="flex gap-3 items-end">
-                    <div className="flex-1">
-                      <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">
-                        Budget (cUSD)
-                      </label>
-                      <input
-                        type="number"
-                        value={jobBudget}
-                        onChange={e => setJobBudget(e.target.value)}
-                        min="0.01"
-                        step="0.1"
-                        className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm focus:outline-none focus:border-[var(--celo-violet)]/50"
-                      />
-                    </div>
+                    {/* Custom budget only if no services defined */}
+                    {(!agent.services || agent.services.length === 0) && (
+                      <div className="flex-1">
+                        <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">
+                          Budget (cUSD)
+                        </label>
+                        <input
+                          type="number"
+                          value={jobBudget}
+                          onChange={e => setJobBudget(e.target.value)}
+                          min="0.01"
+                          step="0.1"
+                          className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm focus:outline-none focus:border-[var(--celo-violet)]/50"
+                        />
+                      </div>
+                    )}
+                    {selectedService && (
+                      <div className="flex-1 px-3 py-2 rounded-lg bg-[var(--celo-gold)]/10 border border-[var(--celo-gold)]/20">
+                        <span className="text-[10px] text-zinc-500">Price:</span>{' '}
+                        <span className="text-sm font-bold text-[var(--celo-gold)]">{formatCUSD(selectedService.price)} cUSD</span>
+                      </div>
+                    )}
                     <button
                       onClick={handleCreateJob}
                       disabled={creatingJob}
-                      className="px-5 py-2 rounded-lg text-sm font-semibold bg-[var(--celo-violet)] text-white hover:brightness-110 transition-all disabled:opacity-50"
+                      className="px-5 py-2 rounded-lg text-sm font-semibold bg-[var(--celo-violet)] text-white hover:brightness-110 transition-all disabled:opacity-50 shrink-0"
                     >
                       {creatingJob ? 'Creating...' : 'Submit Job'}
                     </button>
@@ -537,12 +625,6 @@ export default function AgentScanPage() {
                               <div>
                                 <span className="text-zinc-600">Funded:</span>{' '}
                                 <span className="text-zinc-400">{new Date(job.fundedAt).toLocaleString()}</span>
-                                {job.fundTxHash && (
-                                  <a href={`${CELOSCAN}${job.fundTxHash}`} target="_blank" rel="noopener noreferrer"
-                                    className="ml-2 text-[10px] text-[var(--celo-green)] hover:underline">
-                                    View TX ↗
-                                  </a>
-                                )}
                               </div>
                             )}
                             {job.submittedAt && (
@@ -555,31 +637,17 @@ export default function AgentScanPage() {
                               <div>
                                 <span className="text-zinc-600">Completed:</span>{' '}
                                 <span className="text-zinc-400">{new Date(job.completedAt).toLocaleString()}</span>
-                                {job.payoutTxHash && (
-                                  <a href={`${CELOSCAN}${job.payoutTxHash}`} target="_blank" rel="noopener noreferrer"
-                                    className="ml-2 text-[10px] text-[var(--celo-green)] hover:underline">
-                                    View Payout TX ↗
-                                  </a>
-                                )}
                               </div>
                             )}
                           </div>
 
-                          {/* TX Links */}
-                          {(job.fundTxHash || job.payoutTxHash) && (
-                            <div className="mb-3 flex flex-wrap gap-2">
-                              {job.fundTxHash && (
-                                <a href={`${CELOSCAN}${job.fundTxHash}`} target="_blank" rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 hover:bg-yellow-500/20 transition-all">
-                                  💰 Fund TX · {job.fundTxHash.slice(0, 10)}...{job.fundTxHash.slice(-6)} ↗
-                                </a>
-                              )}
-                              {job.payoutTxHash && (
-                                <a href={`${CELOSCAN}${job.payoutTxHash}`} target="_blank" rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 transition-all">
-                                  ✅ Payout TX · {job.payoutTxHash.slice(0, 10)}...{job.payoutTxHash.slice(-6)} ↗
-                                </a>
-                              )}
+                          {/* Payment TX Link */}
+                          {job.fundTxHash && (
+                            <div className="mb-3">
+                              <a href={`${CELOSCAN}${job.fundTxHash}`} target="_blank" rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--celo-green)]/10 text-[var(--celo-green)] border border-[var(--celo-green)]/20 hover:bg-[var(--celo-green)]/20 transition-all">
+                                🔗 Payment TX · {job.fundTxHash.slice(0, 10)}...{job.fundTxHash.slice(-6)} ↗
+                              </a>
                             </div>
                           )}
 

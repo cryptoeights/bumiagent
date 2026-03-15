@@ -17,6 +17,12 @@ import { CUSD_ADDRESS, ERC20_ABI } from '@/lib/contracts';
 const EARTH_POOL_ADDRESS = '0x0000000000000000000000000000000000000000' as const; // TODO: set real pool address
 const PREMIUM_PRICE = BigInt('5000000000000000000'); // 5 cUSD
 
+interface AgentService {
+  name: string;
+  description?: string;
+  price: string;
+}
+
 interface Agent {
   id: number;
   agentId: number;
@@ -28,6 +34,7 @@ interface Agent {
   ownerAddress: string;
   agentWallet: string;
   customSystemPrompt: string;
+  services: AgentService[];
   isActive: boolean;
   selfVerified: boolean;
   subscriptionTier: string;
@@ -237,6 +244,9 @@ export default function DashboardPage() {
                               </div>
                               <div className="text-[10px] text-zinc-600 font-mono">
                                 #{agent.agentId} · {tpl.name} · {formatCUSD(agent.pricePerCall)} cUSD/call
+                                {agent.services && (agent.services as AgentService[]).length > 0 && (
+                                  <span className="text-[var(--celo-violet)]"> · {(agent.services as AgentService[]).length} services</span>
+                                )}
                               </div>
                               {agent.description && (
                                 <p className="text-[10px] text-zinc-500 mt-0.5 truncate max-w-xs">{agent.description}</p>
