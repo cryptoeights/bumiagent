@@ -17,13 +17,19 @@ const app = new Hono().basePath('/api');
 // Middleware
 app.use('*', logger());
 app.use('*', cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:3005',
-    'https://bumiagent.one',
-    'https://www.bumiagent.one',
-  ],
+  origin: (origin) => {
+    const allowed = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3005',
+      'https://bumiagent.one',
+      'https://www.bumiagent.one',
+    ];
+    if (allowed.includes(origin)) return origin;
+    // Allow Vercel preview deployments
+    if (origin.endsWith('.vercel.app')) return origin;
+    return null;
+  },
   allowMethods: ['GET', 'POST', 'PATCH', 'DELETE'],
 }));
 
