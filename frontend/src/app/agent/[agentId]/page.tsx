@@ -17,6 +17,7 @@ interface AgentDetail {
   ownerAddress: string;
   agentWallet: string;
   isActive: boolean;
+  selfVerified: boolean;
   createdAt: string;
 }
 
@@ -124,6 +125,11 @@ export default function AgentScanPage() {
                     {tpl.name}
                   </span>
                   <TrustBadge totalCalls={stats?.totalCalls || 0} size="md" />
+                  {agent.selfVerified && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[var(--celo-green)]/10 text-[var(--celo-green)] border border-[var(--celo-green)]/20">
+                      ✅ Self Verified
+                    </span>
+                  )}
                   {isOwner && (
                     <span className="px-2 py-0.5 rounded bg-[var(--celo-green)]/10 text-[var(--celo-green)]">
                       You own this

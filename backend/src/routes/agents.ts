@@ -85,6 +85,7 @@ agentRoutes.get('/', async (c) => {
     ownerAddress: agents.ownerAddress,
     agentWallet: agents.agentWallet,
     isActive: agents.isActive,
+    selfVerified: agents.selfVerified,
     createdAt: agents.createdAt,
   })
   .from(agents)

@@ -12,6 +12,8 @@ export const agents = pgTable('agents', {
   pricePerCall: numeric('price_per_call', { precision: 78, scale: 0 }).notNull(),
   agentUri: text('agent_uri').notNull().default(''),
   isActive: boolean('is_active').default(true),
+  selfVerified: boolean('self_verified').default(false),
+  selfAgentId: integer('self_agent_id'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

@@ -1,5 +1,8 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
+import { db } from '../db/index.js';
+import { agents } from '../db/schema.js';
 
 const SELF_API = 'https://app.ai.self.xyz/api/agent';
 const CELO_CHAIN_ID = 42220;
@@ -11,6 +14,7 @@ export const selfRoutes = new Hono();
 const registerSchema = z.object({
   humanAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
   agentWallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+  celospawnAgentId: z.number().optional(),
 });
 
 selfRoutes.post('/register', async (c) => {
@@ -50,10 +54,11 @@ selfRoutes.post('/register', async (c) => {
   }
 });
 
-// ─── GET /self/status?token=xxx — Poll registration status ──
+// ─── GET /self/status — Poll registration status ──
 
 selfRoutes.get('/status', async (c) => {
   const token = c.req.query('token');
+  const celospawnAgentId = c.req.query('agentId');
   if (!token) return c.json({ error: 'token required' }, 400);
 
   try {
@@ -67,42 +72,123 @@ selfRoutes.get('/status', async (c) => {
       return c.json({ error: data.error || 'Status check failed', status: res.status }, res.status as any);
     }
 
+    // If completed, save to our DB
+    if (data.stage === 'completed' && celospawnAgentId) {
+      const agentIdNum = parseInt(celospawnAgentId, 10);
+      if (!isNaN(agentIdNum)) {
+        await db.update(agents)
+          .set({
+            selfVerified: true,
+            selfAgentId: data.agentId || null,
+            updatedAt: new Date(),
+          })
+          .where(eq(agents.agentId, agentIdNum));
+      }
+    }
+
     return c.json(data);
   } catch (err: any) {
     return c.json({ error: `Self API error: ${err.message}` }, 502);
   }
 });
 
-// ─── GET /self/verify/:agentId — Check if CeloSpawn agent's owner is verified ──
+// ─── GET /self/verify/:agentId — Check if CeloSpawn agent is Self verified ──
 
 selfRoutes.get('/verify/:agentId', async (c) => {
-  const agentId = c.req.param('agentId');
+  const agentId = parseInt(c.req.param('agentId'), 10);
+  if (isNaN(agentId)) return c.json({ verified: false, error: 'Invalid agentId' });
 
-  // First get the agent's owner address from our DB (via agents API)
   try {
-    const agentRes = await fetch(`http://localhost:3001/api/agents/${agentId}`);
-    if (!agentRes.ok) return c.json({ verified: false, error: 'Agent not found' });
-    const agentData = await agentRes.json() as { agent: { ownerAddress: string } };
-    const ownerAddress = agentData.agent.ownerAddress;
+    // Check our DB first
+    const [agent] = await db.select({
+      selfVerified: agents.selfVerified,
+      selfAgentId: agents.selfAgentId,
+      ownerAddress: agents.ownerAddress,
+    })
+      .from(agents)
+      .where(eq(agents.agentId, agentId))
+      .limit(1);
 
-    // Check if this human has any verified agents on Self
-    const res = await fetch(`${SELF_API}/agents/${CELO_CHAIN_ID}/${ownerAddress}`);
-    const data = await res.json();
+    if (!agent) return c.json({ verified: false, error: 'Agent not found' });
 
-    if (!res.ok) {
-      return c.json({ verified: false, error: data.error });
+    // If already marked verified in DB
+    if (agent.selfVerified) {
+      // If we have a Self agent ID, double-check on-chain
+      if (agent.selfAgentId) {
+        try {
+          const selfRes = await fetch(`${SELF_API}/verify/${CELO_CHAIN_ID}/${agent.selfAgentId}`);
+          const selfData = await selfRes.json();
+          return c.json({
+            verified: selfData.isVerified === true,
+            selfAgentId: agent.selfAgentId,
+            verificationStrength: selfData.verificationStrength,
+            strengthLabel: selfData.strengthLabel,
+          });
+        } catch {
+          // Self API unreachable, trust our DB
+          return c.json({ verified: true, selfAgentId: agent.selfAgentId });
+        }
+      }
+      // No Self agent ID but marked verified — trust DB
+      return c.json({ verified: true });
     }
 
-    const hasVerified = (data.agents || []).length > 0;
+    // Not verified in DB — also check Self by human address as fallback
+    try {
+      const res = await fetch(`${SELF_API}/agents/${CELO_CHAIN_ID}/${agent.ownerAddress}`);
+      const data = await res.json();
+      if ((data.agents || []).length > 0) {
+        // Found on Self — update our DB
+        const selfAgentId = data.agents[0]?.agentId;
+        await db.update(agents)
+          .set({ selfVerified: true, selfAgentId: selfAgentId || null, updatedAt: new Date() })
+          .where(eq(agents.agentId, agentId));
+        return c.json({ verified: true, selfAgentId });
+      }
+    } catch {}
 
-    return c.json({
-      verified: hasVerified,
-      selfAgents: data.agents || [],
-      totalCount: data.totalCount || 0,
-    });
+    return c.json({ verified: false });
   } catch (err: any) {
     return c.json({ verified: false, error: err.message });
   }
+});
+
+// ─── POST /self/mark-verified/:agentId — Manually mark agent verified after Self app completion ──
+
+const markSchema = z.object({
+  selfAgentId: z.number().optional(),
+  selfAgentAddress: z.string().optional(),
+  ownerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+});
+
+selfRoutes.post('/mark-verified/:agentId', async (c) => {
+  const agentId = parseInt(c.req.param('agentId'), 10);
+  if (isNaN(agentId)) return c.json({ error: 'Invalid agentId' }, 400);
+
+  const body = await c.req.json().catch(() => null);
+  if (!body) return c.json({ error: 'Invalid JSON' }, 400);
+
+  const parsed = markSchema.safeParse(body);
+  if (!parsed.success) return c.json({ error: 'Validation failed' }, 400);
+
+  // Verify ownership
+  const [agent] = await db.select({ ownerAddress: agents.ownerAddress })
+    .from(agents).where(eq(agents.agentId, agentId)).limit(1);
+
+  if (!agent) return c.json({ error: 'Agent not found' }, 404);
+  if (agent.ownerAddress.toLowerCase() !== parsed.data.ownerAddress.toLowerCase()) {
+    return c.json({ error: 'Not the agent owner' }, 403);
+  }
+
+  await db.update(agents)
+    .set({
+      selfVerified: true,
+      selfAgentId: parsed.data.selfAgentId || null,
+      updatedAt: new Date(),
+    })
+    .where(eq(agents.agentId, agentId));
+
+  return c.json({ success: true, agentId, selfVerified: true });
 });
 
 // ─── GET /self/info/:agentId — Get agent info from Self ──

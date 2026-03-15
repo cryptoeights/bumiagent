@@ -19,6 +19,7 @@ interface Agent {
   ownerAddress: string;
   agentWallet: string;
   isActive: boolean;
+  selfVerified: boolean;
   createdAt: string;
 }
 
@@ -197,6 +198,7 @@ export default function DashboardPage() {
                             agentId={agent.agentId}
                             agentWallet={agent.agentWallet}
                             ownerAddress={agent.ownerAddress}
+                            initialVerified={agent.selfVerified}
                           />
                         </div>
                       );

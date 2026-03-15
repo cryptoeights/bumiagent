@@ -16,6 +16,7 @@ interface Agent {
   ownerAddress: string;
   agentWallet: string;
   isActive: boolean;
+  selfVerified: boolean;
   createdAt: string;
 }
 
@@ -147,6 +148,11 @@ export default function RegistryPage() {
                         </div>
                       </div>
                       <TrustBadge totalCalls={stats?.totalCalls || 0} />
+                      {agent.selfVerified && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-[var(--celo-green)]/10 text-[var(--celo-green)] border border-[var(--celo-green)]/20">
+                          ✅ Self Verified
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between text-xs mb-3">
