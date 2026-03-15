@@ -431,12 +431,36 @@ export default function AgentScanPage() {
           {/* Agent Services */}
           {agent.services && (agent.services as AgentService[]).length > 0 && (
             <div className="rounded-xl border border-zinc-800/50 bg-zinc-900/30 overflow-hidden mb-6">
-              <div className="px-5 py-3 border-b border-zinc-800/50">
+              <div className="px-5 py-3 border-b border-zinc-800/50 flex items-center justify-between">
                 <h3 className="font-bold text-sm">Services & Pricing</h3>
+                {address && (
+                  <button
+                    onClick={() => {
+                      setShowCreateJob(true);
+                      setJobError('');
+                      setJobSuccess('');
+                      // Scroll to jobs section
+                      document.getElementById('jobs-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--celo-violet)] text-white hover:brightness-110 transition-all"
+                  >
+                    🤝 Hire Agent
+                  </button>
+                )}
               </div>
               <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {(agent.services as AgentService[]).map((svc, i) => (
-                  <div key={i} className="p-3 rounded-lg border border-zinc-800 bg-zinc-900/50">
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => {
+                      if (!address) return;
+                      setSelectedService(svc);
+                      setShowCreateJob(true);
+                      document.getElementById('jobs-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="text-left p-3 rounded-lg border border-zinc-800 bg-zinc-900/50 hover:border-[var(--celo-violet)]/50 hover:bg-[var(--celo-violet)]/5 transition-all cursor-pointer"
+                  >
                     <div className="flex justify-between items-start mb-1">
                       <span className="text-sm font-semibold text-zinc-200">{svc.name}</span>
                       <span className="text-sm font-mono font-bold text-[var(--celo-gold)] shrink-0 ml-2">
@@ -446,7 +470,7 @@ export default function AgentScanPage() {
                     {svc.description && (
                       <p className="text-xs text-zinc-500">{svc.description}</p>
                     )}
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -465,16 +489,18 @@ export default function AgentScanPage() {
           )}
 
           {/* ERC-8183 Jobs Section */}
-          <div className="rounded-xl border border-zinc-800/50 bg-zinc-900/30 overflow-hidden">
+          <div id="jobs-section" className="rounded-xl border border-zinc-800/50 bg-zinc-900/30 overflow-hidden">
             <div className="px-5 py-3 border-b border-zinc-800/50 flex items-center justify-between">
               <h3 className="font-bold text-sm">ERC-8183 Jobs ({jobs.length})</h3>
-              {address && !isOwner && (
+              {address ? (
                 <button
                   onClick={() => { setShowCreateJob(!showCreateJob); setJobError(''); setJobSuccess(''); }}
                   className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--celo-violet)] text-white hover:brightness-110 transition-all"
                 >
-                  {showCreateJob ? 'Cancel' : '+ Create Job'}
+                  {showCreateJob ? 'Cancel' : '+ Hire Agent'}
                 </button>
+              ) : (
+                <span className="text-[10px] text-zinc-600">Connect wallet to hire</span>
               )}
             </div>
 
