@@ -29,6 +29,9 @@ export function Navbar() {
           <Link href="/dashboard" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
             Dashboard
           </Link>
+          <a href="/deck.html" target="_blank" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+            Deck
+          </a>
           <ConnectButton />
         </div>
 
@@ -69,6 +72,10 @@ export function Navbar() {
               className="block px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 transition-all">
               Dashboard
             </Link>
+            <a href="/deck.html" target="_blank" onClick={() => setMenuOpen(false)}
+              className="block px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 transition-all">
+              Deck
+            </a>
           </div>
         </div>
       )}
