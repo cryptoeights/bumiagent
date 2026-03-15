@@ -41,7 +41,9 @@ selfRoutes.post('/register', async (c) => {
       sessionToken: data.sessionToken,
       deepLink: data.deepLink,
       agentAddress: data.agentAddress,
-      qrData: data.deepLink, // For QR rendering
+      qrData: data.qrData,
+      humanInstructions: data.humanInstructions || [],
+      expiresAt: data.expiresAt,
     });
   } catch (err: any) {
     return c.json({ error: `Self API error: ${err.message}` }, 502);
