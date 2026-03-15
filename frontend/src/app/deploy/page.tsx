@@ -170,28 +170,54 @@ export default function DeployPage() {
                 <p className="text-[10px] text-zinc-600 mt-1">{description.length}/500</p>
               </div>
 
-              {/* Logo URL */}
+              {/* Logo */}
               <div>
                 <label className="block text-sm font-semibold mb-2">
-                  Logo URL <span className="text-zinc-600 font-normal">(optional)</span>
+                  Logo <span className="text-zinc-600 font-normal">(optional)</span>
                 </label>
                 <div className="flex gap-3 items-start">
-                  <input
-                    type="url"
-                    value={logoUrl}
-                    onChange={e => setLogoUrl(e.target.value)}
-                    placeholder="https://example.com/logo.png"
-                    className="flex-1 px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-[var(--celo-green)]/50 focus:ring-1 focus:ring-[var(--celo-green)]/20 transition-all text-sm"
-                  />
+                  <div className="flex-1 space-y-2">
+                    {/* File upload */}
+                    <label className="flex items-center gap-2 px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 text-sm cursor-pointer hover:border-[var(--celo-green)]/50 transition-all">
+                      <span>📁</span>
+                      <span>{logoUrl && logoUrl.startsWith('data:') ? 'Image uploaded ✓' : 'Upload image'}</span>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 150_000) { setError('Logo must be under 150KB'); return; }
+                          const reader = new FileReader();
+                          reader.onload = () => setLogoUrl(reader.result as string);
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    </label>
+                    {/* Or URL */}
+                    <input
+                      type="url"
+                      value={logoUrl.startsWith('data:') ? '' : logoUrl}
+                      onChange={e => setLogoUrl(e.target.value)}
+                      placeholder="Or paste URL: https://example.com/logo.png"
+                      className="w-full px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-[var(--celo-green)]/50 transition-all text-xs"
+                    />
+                  </div>
                   {logoUrl && (
-                    <div className="w-12 h-12 rounded-xl bg-zinc-800 border border-zinc-700 overflow-hidden shrink-0 flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-xl bg-zinc-800 border border-zinc-700 overflow-hidden shrink-0 flex items-center justify-center relative">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={logoUrl} alt="Logo preview" className="w-full h-full object-cover"
                         onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      <button
+                        type="button"
+                        onClick={() => setLogoUrl('')}
+                        className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[8px] flex items-center justify-center hover:bg-red-400"
+                      >×</button>
                     </div>
                   )}
                 </div>
-                <p className="text-[10px] text-zinc-600 mt-1">Direct link to an image (PNG, JPG, SVG)</p>
+                <p className="text-[10px] text-zinc-600 mt-1">PNG, JPG, SVG, WebP · Max 150KB</p>
               </div>
 
               {/* Skill.md */}
