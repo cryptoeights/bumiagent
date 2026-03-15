@@ -376,7 +376,7 @@ export default function AgentScanPage() {
             <div className="p-4 rounded-xl border border-zinc-800/50 bg-zinc-900/30">
               <div className="text-xs text-zinc-500 mb-1">Jobs</div>
               <div className="text-xl font-bold font-[var(--font-display)] text-[var(--celo-violet)]">
-                {jobs.length}
+                {agent.services && (agent.services as AgentService[]).length > 0 ? jobs.length : '—'}
               </div>
             </div>
           </div>
@@ -511,63 +511,12 @@ export default function AgentScanPage() {
             </div>
           )}
 
-          {/* ERC-8183 Jobs Section */}
+          {/* Jobs Section — only when agent has services */}
+          {agent.services && (agent.services as AgentService[]).length > 0 && (
           <div id="jobs-section" className="rounded-xl border border-zinc-800/50 bg-zinc-900/30 overflow-hidden">
-            <div className="px-5 py-3 border-b border-zinc-800/50 flex items-center justify-between">
+            <div className="px-5 py-3 border-b border-zinc-800/50">
               <h3 className="font-bold text-sm">Jobs ({jobs.length})</h3>
-              {/* Only show hire button here if agent has NO services (otherwise hire is above) */}
-              {address && (!agent.services || (agent.services as AgentService[]).length === 0) && (
-                <button
-                  onClick={() => { setShowCreateJob(!showCreateJob); setJobError(''); setJobSuccess(''); }}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--celo-violet)] text-white hover:brightness-110 transition-all"
-                >
-                  {showCreateJob ? 'Cancel' : '+ Hire Agent'}
-                </button>
-              )}
             </div>
-
-            {/* Create Job Form — only for agents WITHOUT services */}
-            {showCreateJob && (!agent.services || (agent.services as AgentService[]).length === 0) && (
-              <div className="px-5 py-4 border-b border-zinc-800/50 bg-zinc-900/50">
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">
-                      Job Description
-                    </label>
-                    <textarea
-                      value={jobDesc}
-                      onChange={e => setJobDesc(e.target.value)}
-                      placeholder="Describe what you want the agent to do..."
-                      rows={3}
-                      maxLength={5000}
-                      className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm placeholder-zinc-600 focus:outline-none focus:border-[var(--celo-violet)]/50 resize-none"
-                    />
-                  </div>
-                  <div className="flex gap-3 items-end">
-                    <div className="flex-1">
-                      <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">
-                        Budget (cUSD)
-                      </label>
-                      <input
-                        type="number"
-                        value={jobBudget}
-                        onChange={e => setJobBudget(e.target.value)}
-                        min="0.01"
-                        step="0.1"
-                        className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm focus:outline-none focus:border-[var(--celo-violet)]/50"
-                      />
-                    </div>
-                    <button
-                      onClick={handleCreateJob}
-                      disabled={creatingJob}
-                      className="px-5 py-2 rounded-lg text-sm font-semibold bg-[var(--celo-violet)] text-white hover:brightness-110 transition-all disabled:opacity-50 shrink-0"
-                    >
-                      {creatingJob ? 'Creating...' : 'Submit Job'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Jobs List */}
             {jobs.length === 0 ? (
@@ -741,6 +690,7 @@ export default function AgentScanPage() {
               </div>
             )}
           </div>
+          )}
         </div>
       </div>
     </div>
