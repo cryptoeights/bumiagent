@@ -148,7 +148,8 @@ export default function DashboardPage() {
                       const s = statsMap[agent.agentId];
                       const tpl = getTemplate(agent.templateId);
                       return (
-                        <div key={agent.id} className="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-800/10 transition-colors">
+                        <div key={agent.id} className="px-5 py-4 space-y-3 hover:bg-zinc-800/10 transition-colors">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                           <div className="flex items-center gap-3 min-w-0">
                             <div 
                               className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0"
@@ -189,31 +190,18 @@ export default function DashboardPage() {
                               </Link>
                             </div>
                           </div>
+                          </div>
+
+                          {/* Self Verification inline */}
+                          <SelfVerification
+                            agentId={agent.agentId}
+                            agentWallet={agent.agentWallet}
+                            ownerAddress={agent.ownerAddress}
+                          />
                         </div>
                       );
                     })}
                   </div>
-                </div>
-              )}
-
-              {/* Self Verification per agent */}
-              {agents.length > 0 && (
-                <div className="mt-6 space-y-4">
-                  <h3 className="font-bold text-sm font-[var(--font-display)]">Agent Verification</h3>
-                  {agents.map(agent => (
-                    <div key={`verify-${agent.id}`}>
-                      <div className="text-xs text-zinc-400 mb-2 flex items-center gap-2">
-                        <span>{getTemplate(agent.templateId).icon}</span>
-                        <span className="font-semibold">{agent.name}</span>
-                        <span className="text-zinc-600 font-mono">#{agent.agentId}</span>
-                      </div>
-                      <SelfVerification
-                        agentId={agent.agentId}
-                        agentWallet={agent.agentWallet}
-                        ownerAddress={agent.ownerAddress}
-                      />
-                    </div>
-                  ))}
                 </div>
               )}
             </>

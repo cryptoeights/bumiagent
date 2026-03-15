@@ -71,22 +71,32 @@ selfRoutes.get('/status', async (c) => {
   }
 });
 
-// ─── GET /self/verify/:agentId — Check if agent is verified ──
+// ─── GET /self/verify/:agentId — Check if CeloSpawn agent's owner is verified ──
 
 selfRoutes.get('/verify/:agentId', async (c) => {
   const agentId = c.req.param('agentId');
 
+  // First get the agent's owner address from our DB (via agents API)
   try {
-    const res = await fetch(`${SELF_API}/verify/${CELO_CHAIN_ID}/${agentId}`);
+    const agentRes = await fetch(`http://localhost:3001/api/agents/${agentId}`);
+    if (!agentRes.ok) return c.json({ verified: false, error: 'Agent not found' });
+    const agentData = await agentRes.json() as { agent: { ownerAddress: string } };
+    const ownerAddress = agentData.agent.ownerAddress;
+
+    // Check if this human has any verified agents on Self
+    const res = await fetch(`${SELF_API}/agents/${CELO_CHAIN_ID}/${ownerAddress}`);
     const data = await res.json();
 
     if (!res.ok) {
       return c.json({ verified: false, error: data.error });
     }
 
+    const hasVerified = (data.agents || []).length > 0;
+
     return c.json({
-      verified: data.isVerified === true,
-      ...data,
+      verified: hasVerified,
+      selfAgents: data.agents || [],
+      totalCount: data.totalCount || 0,
     });
   } catch (err: any) {
     return c.json({ verified: false, error: err.message });
