@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { apiFetch } from '@/lib/api';
 
 const TEMPLATE_ICONS = ['💰', '💸', '✍️', '🔍', '🎧', '📊', '🌱', '🏛️', '📚', '🤖'];
 
@@ -21,8 +22,7 @@ export function TopAgents() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/agents/top?limit=3')
-      .then((r) => r.json())
+    apiFetch<{ agents: TopAgent[] }>('/agents/top?limit=3')
       .then((d) => setAgents(d.agents || []))
       .catch(() => {})
       .finally(() => setLoading(false));

@@ -17,7 +17,12 @@ const app = new Hono().basePath('/api');
 // Middleware
 app.use('*', logger());
 app.use('*', cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://bumiagent.one',
+    'https://www.bumiagent.one',
+  ],
   allowMethods: ['GET', 'POST', 'PATCH', 'DELETE'],
 }));
 

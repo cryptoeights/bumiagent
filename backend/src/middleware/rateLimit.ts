@@ -1,23 +1,28 @@
 import Redis from 'ioredis';
 import { env } from '../config/env.js';
 
-const redis = new Redis(env.REDIS_URL, {
-  maxRetriesPerRequest: 3,
-  lazyConnect: true,
-});
+let redis: Redis | null = null;
 
-redis.on('error', (err) => {
-  console.error('Redis connection error:', err.message);
-});
+if (env.REDIS_URL) {
+  redis = new Redis(env.REDIS_URL, {
+    maxRetriesPerRequest: 3,
+    lazyConnect: true,
+  });
 
-redis.on('connect', () => {
-  console.log('✅ Redis connected');
-});
+  redis.on('error', (err) => {
+    console.error('Redis connection error:', err.message);
+  });
 
-// Connect on import
-redis.connect().catch(() => {
-  console.warn('⚠️ Redis not available — rate limiting disabled');
-});
+  redis.on('connect', () => {
+    console.log('✅ Redis connected');
+  });
+
+  redis.connect().catch(() => {
+    console.warn('⚠️ Redis not available — rate limiting disabled');
+  });
+} else {
+  console.warn('⚠️ REDIS_URL not set — rate limiting disabled');
+}
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -35,8 +40,8 @@ export async function checkRateLimit(
   agentId: number,
   dailyLimit: number = 10
 ): Promise<RateLimitResult> {
-  // If Redis is not connected, allow (fail open for dev)
-  if (redis.status !== 'ready') {
+  // If Redis is not connected, allow (fail open)
+  if (!redis || redis.status !== 'ready') {
     return { allowed: true, limit: dailyLimit, remaining: dailyLimit, resetAt: '' };
   }
 

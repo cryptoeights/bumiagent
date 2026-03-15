@@ -3,7 +3,7 @@ import 'dotenv/config';
 
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
-  REDIS_URL: z.string(),
+  REDIS_URL: z.string().optional(),
   OPENROUTER_API_KEY: z.string().min(1),
   ENCRYPTION_MASTER_KEY: z.string().length(64, 'Must be 64 hex chars (32 bytes)'),
   TREASURY_ADDRESS: z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Must be valid Ethereum address'),
