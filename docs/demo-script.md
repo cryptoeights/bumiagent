@@ -1,163 +1,163 @@
 # 🎬 Bumi Agent — Demo Script
 
-> **Durasi:** 5-7 menit  
+> **Duration:** 5-7 minutes  
 > **Format:** Screen recording + voice-over  
-> **URL Live:** [bumiagent.one](https://bumiagent.one)  
+> **Live URL:** [bumiagent.one](https://bumiagent.one)  
 > **Hackathon:** Synthesis Hackathon — Celo Track
 
 ---
 
-## 🎤 OPENING (30 detik)
+## 🎤 OPENING (30 seconds)
 
 **[Screen: Landing page bumiagent.one]**
 
-> "Hai, ini Bumi Agent — platform no-code dimana siapapun bisa launch, monetize, dan manage AI agent di Celo blockchain dalam 10 detik.
+> "Hey, this is Bumi Agent — a no-code platform where anyone can launch, monetize, and manage AI agents on Celo blockchain in 10 seconds.
 >
-> Masalahnya simpel: deploy 1 AI agent yang bisa terima pembayaran on-chain butuh 2-4 minggu engineering. Wallet infrastructure, payment integration, on-chain identity, escrow system — semuanya harus dibangun dari nol.
+> The problem is simple: deploying a single AI agent that can receive payments on-chain takes 2 to 4 weeks of engineering. Wallet infrastructure, payment integration, on-chain identity, escrow systems — all built from scratch.
 >
-> Bumi Agent mereduksi semua itu jadi 3 field dan 1 tombol. Let me show you."
+> Bumi Agent reduces all of that to 3 fields and 1 button. Let me show you."
 
 ---
 
-## 🚀 DEMO 1: Deploy Agent (60 detik)
+## 🚀 DEMO 1: Deploy an Agent (60 seconds)
 
-**[Screen: Klik "Deploy" di navbar → halaman /deploy]**
+**[Screen: Click "Deploy" in navbar → /deploy page]**
 
-> "Untuk deploy agent, cuma butuh 3 hal:"
+> "To deploy an agent, you only need 3 things:"
 
-**[Isi form]**
-1. **Name** → ketik "Climate Research Bot"
-2. **Template** → pilih "Research Agent"
+**[Fill the form]**
+1. **Name** → type "Climate Research Bot"
+2. **Template** → select "Research Agent"
 3. **Price** → set "0.15" cUSD per call
 
-> "Klik Deploy — dan dalam hitungan detik, platform otomatis:
-> - Generate wallet terenkripsi (AES-256-GCM)
-> - Daftarkan agent sebagai NFT on-chain lewat ERC-8004
-> - Konfigurasi endpoint pembayaran x402
-> - Agent langsung live dan bisa terima pembayaran di cUSD
+> "Click Deploy — and within seconds, the platform automatically:
+> - Generates an encrypted wallet (AES-256-GCM)
+> - Registers the agent as an on-chain NFT via ERC-8004
+> - Configures an x402 payment endpoint
+> - The agent is immediately live and ready to earn cUSD
 >
 > Zero code. Zero Solidity. Zero wallet setup."
 
 ---
 
-## 💬 DEMO 2: Chat dengan Agent (60 detik)
+## 💬 DEMO 2: Chat with an Agent (60 seconds)
 
-**[Screen: Buka agent dari Registry → klik Chat]**
+**[Screen: Open an agent from Registry → click Chat]**
 
-> "Sekarang kita coba chat dengan agent yang sudah di-deploy."
+> "Now let's chat with a deployed agent."
 
-**[Ketik pertanyaan di chat interface]**
+**[Type a question in the chat interface]**
 
-> "Setiap chat call yang masuk secara otomatis di-monetize lewat protokol x402. Creator agent langsung dapat revenue di cUSD — tanpa perlu setup payment gateway apapun.
+> "Every incoming chat call is automatically monetized via the x402 protocol. The agent creator receives cUSD revenue instantly — no payment gateway setup required.
 >
-> Di balik layar, platform punya 8 AI model dengan smart routing. Free agent pakai free model — Claude 4.6 Sonnet, DeepSeek R1, Gemini Flash, Llama 4 Scout, Mistral Medium. Premium agent unlock GPT-4o, Gemini 2.5 Pro, dan Claude 4 Opus. Kalau 1 model gagal, otomatis fallback ke model lain. Zero downtime."
+> Behind the scenes, the platform has 8 AI models with smart routing. Free agents use free models — Claude 4.6 Sonnet, DeepSeek R1, Gemini Flash, Llama 4 Scout, Mistral Medium. Premium agents unlock GPT-4o, Gemini 2.5 Pro, and Claude 4 Opus. If one model fails, it automatically falls back to another. Zero downtime."
 
 ---
 
-## 📊 DEMO 3: Analytics Dashboard (45 detik)
+## 📊 DEMO 3: Analytics Dashboard (45 seconds)
 
-**[Screen: Klik agent → scroll ke Analytics section]**
+**[Screen: Click on an agent → scroll to the Analytics section]**
 
-> "Setiap agent punya analytics dashboard sendiri dengan data 30 hari:"
+> "Every agent has its own analytics dashboard with 30 days of data:"
 
-**[Tunjukkan chart satu per satu]**
+**[Show each chart]**
 
-> "- **Call Trends** — volume harian dalam line chart
-> - **Revenue** — pendapatan cUSD dalam area chart
-> - **Model Usage** — distribusi pemakaian AI model dalam pie chart
+> "- **Call Trends** — daily call volume as a line chart
+> - **Revenue** — cUSD earnings as an area chart
+> - **Model Usage** — AI model distribution as a pie chart
 >
-> Semua real-time, langsung dari production database."
+> All real-time, served directly from the production database."
 
 ---
 
-## 🔍 DEMO 4: Agent Registry / AgentScan (45 detik)
+## 🔍 DEMO 4: Agent Registry / AgentScan (45 seconds)
 
-**[Screen: Buka /registry]**
+**[Screen: Navigate to /registry]**
 
-> "Registry ini kayak 'App Store' untuk AI agent. Semua agent yang di-deploy muncul di sini — lengkap dengan trust badge, harga, dan jumlah call.
+> "The Registry is like an 'App Store' for AI agents. Every deployed agent appears here — complete with trust badges, pricing, and call count.
 >
-> Trust badge naik otomatis berdasarkan usage:
-> - Grey — baru, 0 calls
+> Trust badges level up automatically based on usage:
+> - Grey — new, 0 calls
 > - Blue — 10+ calls
 > - Silver — 50+ calls
 > - Gold — 100+ calls
 >
-> Plus, owner agent bisa verifikasi identitas lewat Self Protocol — proof-of-human, anti-sybil."
+> Plus, agent owners can verify their identity through Self Protocol — proof-of-human, anti-sybil."
 
 ---
 
-## 🔗 DEMO 5: Smart Contracts (45 detik)
+## 🔗 DEMO 5: Smart Contracts (45 seconds)
 
-**[Screen: Buka Celoscan — tunjukkan 3 kontrak verified]**
+**[Screen: Open Celoscan — show the 3 verified contracts]**
 
-> "Semua berjalan di atas 3 smart contract yang sudah verified di Celo Mainnet:"
+> "Everything runs on top of 3 smart contracts verified on Celo Mainnet:"
 
-> "1. **SpawnRegistry** — ERC-721 + ERC-8004. Setiap agent terdaftar sebagai NFT dengan on-chain identity dan subscription management.
+> "1. **SpawnRegistry** — ERC-721 + ERC-8004. Every agent is registered as an NFT with on-chain identity and subscription management.
 >
-> 2. **AgentCommerce** — ERC-8183. Sistem job escrow — client bikin task, dana masuk escrow, agent kirim deliverable, client approve, dana release. Trustless.
+> 2. **AgentCommerce** — ERC-8183. A job escrow system — clients create tasks, fund escrow, agents deliver, clients approve, funds release. Fully trustless.
 >
-> 3. **EarthPool** — Smart contract ReFi. 15% dari revenue premium subscription otomatis masuk sini untuk mendanai kampanye lingkungan di Celo. Fully transparent, on-chain."
+> 3. **EarthPool** — A ReFi smart contract. 15% of premium subscription revenue automatically goes here to fund environmental campaigns on Celo. Fully transparent, on-chain."
 
 ---
 
-## 🌱 DEMO 6: EarthPool / ReFi (30 detik)
+## 🌱 DEMO 6: EarthPool / ReFi (30 seconds)
 
-**[Screen: Tunjukkan EarthPool di Celoscan]**
+**[Screen: Show EarthPool on Celoscan]**
 
-> "Ini yang bikin Bumi Agent unik — setiap premium agent secara otomatis berkontribusi ke lingkungan. 15% revenue masuk EarthPool contract. Ketika dana mencapai threshold, campaign baru ter-trigger.
+> "This is what makes Bumi Agent unique — every premium agent automatically contributes to the environment. 15% of revenue goes into the EarthPool contract. When funds reach the threshold, a new campaign is triggered.
 >
-> Jadi AI growth dan environmental sustainability berjalan bareng — sesuai dengan misi Celo: prosperity for all."
+> AI growth and environmental sustainability go hand in hand — aligned with Celo's mission: prosperity for all."
 
 ---
 
-## 🏗️ TECH DEEP-DIVE (60 detik)
+## 🏗️ TECH DEEP-DIVE (60 seconds)
 
-**[Screen: Pitch deck slide Architecture, atau diagram di README]**
+**[Screen: Pitch deck Architecture slide, or the README diagram]**
 
-> "Secara arsitektur, Bumi Agent terdiri dari 3 layer:"
+> "Architecturally, Bumi Agent consists of 3 layers:"
 
 ### Frontend
-> "**Next.js 16** dengan TypeScript dan Tailwind CSS v4. Wallet connection pakai RainbowKit + wagmi. Analytics chart pakai Recharts. Fully mobile-responsive. Di-deploy di **Vercel**."
+> "**Next.js 16** with TypeScript and Tailwind CSS v4. Wallet connection via RainbowKit + wagmi. Analytics charts powered by Recharts. Fully mobile-responsive. Deployed on **Vercel**."
 
 ### Backend
-> "**Hono** — framework ringan di Node.js. 16 REST API endpoint. Database PostgreSQL di **Supabase** lewat Drizzle ORM. Caching dan rate limiting di **Upstash Redis**. LLM gateway lewat **OpenRouter** — satu endpoint, 8 model. Payment processing pakai **x402 protocol**. Wallet encryption pakai **AES-256-GCM**. Di-deploy di **Railway**."
+> "**Hono** — a lightweight Node.js framework. 16 REST API endpoints. PostgreSQL database on **Supabase** via Drizzle ORM. Caching and rate limiting on **Upstash Redis**. LLM gateway through **OpenRouter** — one endpoint, 8 models. Payment processing via **x402 protocol**. Wallet encryption using **AES-256-GCM**. Deployed on **Railway**."
 
 ### Blockchain
-> "3 smart contract di **Celo Mainnet**, ditulis pakai **Solidity 0.8.25** dan **Foundry**. Menggunakan library **OpenZeppelin** — ERC-721, ReentrancyGuard, Ownable. **85 unit test**, full coverage. Semua verified di Celoscan."
+> "3 smart contracts on **Celo Mainnet**, written in **Solidity 0.8.25** with **Foundry**. Using **OpenZeppelin** libraries — ERC-721, ReentrancyGuard, Ownable. **85 unit tests**, full coverage. All verified on Celoscan."
 
 ---
 
-## 🔑 KILLER FEATURES — Ringkasan (45 detik)
+## 🔑 KILLER FEATURES — Summary (45 seconds)
 
-**[Screen: Landing page atau pitch deck]**
+**[Screen: Landing page or pitch deck]**
 
-> "Kalau harus pilih 5 killer feature:"
+> "If I had to pick 5 killer features:"
 
-> "**Pertama — 10-Second Deploy.** 3 field, 1 klik. Dari nol ke earning dalam 10 detik. Ga ada platform lain yang bisa begini.
+> "**First — 10-Second Deploy.** 3 fields, 1 click. From zero to earning in 10 seconds. No other platform can do this.
 >
-> **Kedua — x402 Pay-Per-Call.** HTTP-native payment protocol. Agent langsung monetize dari hari pertama tanpa setup apapun.
+> **Second — x402 Pay-Per-Call.** HTTP-native payment protocol. Agents monetize from day one with zero setup.
 >
-> **Ketiga — Multi-Model AI dengan Fallback.** 8 model, tier-based routing, auto-fallback. User selalu dapat response.
+> **Third — Multi-Model AI with Fallback.** 8 models, tier-based routing, auto-fallback. Users always get a response.
 >
-> **Keempat — ERC-8183 Job Escrow.** Bukan cuma chat — agent bisa terima task berbayar lewat trustless escrow on-chain.
+> **Fourth — ERC-8183 Job Escrow.** Not just chat — agents can accept paid tasks through trustless on-chain escrow.
 >
-> **Kelima — EarthPool ReFi.** 15% revenue ke lingkungan, on-chain, transparan. AI yang peduli bumi."
+> **Fifth — EarthPool ReFi.** 15% of revenue goes to the environment, on-chain, transparent. AI that cares about the planet."
 
 ---
 
-## 📈 CLOSING — Traction & CTA (30 detik)
+## 📈 CLOSING — Traction & CTA (30 seconds)
 
-**[Screen: Traction slide pitch deck atau live registry]**
+**[Screen: Traction slide from pitch deck or live registry]**
 
-> "Saat ini Bumi Agent sudah:
-> - 12 agent live di Celo Mainnet
-> - 52+ paid API call processed
+> "Right now, Bumi Agent has:
+> - 12 agents live on Celo Mainnet
+> - 52+ paid API calls processed
 > - 7.80 cUSD revenue generated
-> - 3 smart contract verified
-> - 8 AI model running
-> - 16 API endpoint in production
+> - 3 verified smart contracts
+> - 8 AI models running
+> - 16 API endpoints in production
 >
-> Semuanya live di **bumiagent.one**. Source code open di GitHub.
+> Everything is live at **bumiagent.one**. Source code is open on GitHub.
 >
 > Bumi Agent — AI agents for everyone. Built with 🌱 on Celo."
 
@@ -193,18 +193,18 @@
 
 ---
 
-## 🎯 Key Numbers untuk Disebutkan
+## 🎯 Key Numbers to Mention
 
 | Metric | Value |
 |--------|-------|
-| Waktu deploy agent | 10 detik |
-| Field yang diisi | 3 |
-| Smart contract | 3 (semua verified) |
-| AI model | 8 (5 free + 3 premium) |
-| API endpoint | 16 |
+| Agent deploy time | 10 seconds |
+| Form fields to fill | 3 |
+| Smart contracts | 3 (all verified) |
+| AI models | 8 (5 free + 3 premium) |
+| API endpoints | 16 |
 | Agent templates | 10 |
 | Contract tests | 85 |
-| Agent deployed | 12 |
+| Agents deployed | 12 |
 | Paid calls | 52+ |
 | Revenue | 7.80 cUSD |
-| ReFi contribution | 15% premium revenue |
+| ReFi contribution | 15% of premium revenue |

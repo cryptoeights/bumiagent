@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bumi Agent — Demo Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #35D07F;
+  --green-light: #5CF5A0;
+  --green-dim: #1a9e5a;
+  --bg: #060A06;
+  --surface: #0E1610;
+  --surface2: #141E16;
+  --text: #E8F0EA;
+  --text-dim: #7A9580;
+  --gold: #F5C542;
+  --coral: #FF6B6B;
+  --blue: #4DA6FF;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Nav */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(6,10,6,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(53,208,127,0.06);
+  padding: 16px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-brand {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.2rem;
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.nav-brand .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.nav-links {
+  display: flex;
+  gap: 6px;
+}
+.nav-links a {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 100px;
+  transition: all 0.2s;
+}
+.nav-links a:hover {
+  color: var(--text);
+  background: rgba(53,208,127,0.06);
+}
+.nav-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  padding: 5px 12px;
+  border: 1px solid rgba(53,208,127,0.1);
+  border-radius: 100px;
+}
+
+/* Hero */
+.hero {
+  padding: 160px 60px 80px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.hero-tag {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--green);
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: 3.8rem;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+.hero h1 em { color: var(--green); font-style: italic; }
+.hero-sub {
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  max-width: 560px;
+  margin-bottom: 32px;
+}
+.hero-meta {
+  display: flex;
+  gap: 24px;
+}
+.hero-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+.hero-meta-item .icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: rgba(53,208,127,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+/* Section */
+.section {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 60px;
+}
+.section-anchor { scroll-margin-top: 80px; }
+.section-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.section h2 {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: 2.4rem;
+  line-height: 1.1;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+.section h2 em { color: var(--green); font-style: italic; }
+.section-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--green);
+  padding: 4px 12px;
+  border: 1px solid rgba(53,208,127,0.15);
+  border-radius: 100px;
+  margin-bottom: 28px;
+  background: rgba(53,208,127,0.03);
+}
+
+/* Screen direction */
+.screen-dir {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: rgba(77,166,255,0.04);
+  border: 1px solid rgba(77,166,255,0.1);
+  font-size: 0.85rem;
+  color: var(--blue);
+  margin-bottom: 20px;
+}
+.screen-dir .label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.6;
+}
+
+/* Script block */
+.script {
+  position: relative;
+  padding: 24px 28px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid rgba(53,208,127,0.06);
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.7;
+}
+.script::before {
+  content: '🎙️';
+  position: absolute;
+  top: 24px;
+  right: 20px;
+  font-size: 1rem;
+  opacity: 0.4;
+}
+.script strong { color: var(--green-light); }
+.script em { color: var(--text-dim); font-style: normal; }
+
+/* Steps */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid rgba(53,208,127,0.06);
+}
+.step-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(53,208,127,0.08);
+  color: var(--green);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.step-text {
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.step-text code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  background: rgba(53,208,127,0.06);
+  color: var(--green);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Bullet list */
+.bullet-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0;
+}
+.bullet-list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.bullet-list li::before {
+  content: '›';
+  color: var(--green);
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.bullet-list li strong { color: var(--text); }
+
+/* Divider */
+.divider {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 60px;
+}
+.divider-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(53,208,127,0.1), transparent);
+}
+
+/* Killer features */
+.killer-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 24px;
+}
+.killer-card {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 22px 24px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid rgba(53,208,127,0.06);
+  transition: border-color 0.2s;
+}
+.killer-card:hover { border-color: rgba(53,208,127,0.15); }
+.killer-num {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2rem;
+  color: rgba(53,208,127,0.15);
+  line-height: 1;
+  flex-shrink: 0;
+  width: 36px;
+}
+.killer-card h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.killer-card p {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* Tech stack table */
+.tech-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  margin-top: 24px;
+}
+.tech-table th {
+  text-align: left;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  padding: 0 16px 8px;
+}
+.tech-table td {
+  padding: 14px 16px;
+  background: var(--surface);
+  font-size: 0.88rem;
+}
+.tech-table tr td:first-child {
+  border-radius: 10px 0 0 10px;
+  font-weight: 600;
+  color: var(--text);
+}
+.tech-table tr td:last-child {
+  border-radius: 0 10px 10px 0;
+  color: var(--text-dim);
+}
+.tech-table .layer-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--green);
+  padding: 18px 16px 6px;
+  background: none;
+}
+
+/* Metrics grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 24px 0;
+}
+.metric-card {
+  padding: 22px 18px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid rgba(53,208,127,0.06);
+  text-align: center;
+}
+.metric-card .val {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2.2rem;
+  color: var(--green);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.metric-card .lbl {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+/* Footer */
+.footer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 60px;
+  text-align: center;
+}
+.footer p {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+.footer a {
+  color: var(--green);
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .hero { padding: 120px 24px 60px; }
+  .hero h1 { font-size: 2.4rem; }
+  .section { padding: 40px 24px; }
+  .section h2 { font-size: 1.8rem; }
+  .nav { padding: 12px 20px; }
+  .nav-links { display: none; }
+  .hero-meta { flex-wrap: wrap; gap: 12px; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .divider { padding: 0 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="#" class="nav-brand"><span class="dot"></span> Demo Guide</a>
+  <div class="nav-links">
+    <a href="#s1">Deploy</a>
+    <a href="#s2">Chat</a>
+    <a href="#s3">Analytics</a>
+    <a href="#s4">Registry</a>
+    <a href="#s5">Contracts</a>
+    <a href="#s6">ReFi</a>
+    <a href="#s7">Tech</a>
+    <a href="#s8">Killer</a>
+    <a href="#s9">Close</a>
+  </div>
+  <span class="nav-time">5–7 min</span>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">Demo Script & Walkthrough Guide</div>
+  <h1>Bumi <em>Agent</em></h1>
+  <p class="hero-sub">Step-by-step guide for presenting Bumi Agent. Each section includes screen directions, talking points, and timing cues.</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item"><div class="icon">🎬</div> Screen recording + voice-over</div>
+    <div class="hero-meta-item"><div class="icon">🌐</div> bumiagent.one</div>
+    <div class="hero-meta-item"><div class="icon">⏱</div> 5–7 minutes total</div>
+  </div>
+</header>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- OPENING -->
+<div class="section">
+  <div class="section-num">00 — OPENING</div>
+  <h2>Set the <em>stage</em></h2>
+  <div class="section-time">⏱ 30 seconds</div>
+  <div class="screen-dir">
+    <span class="label">Screen</span> Landing page — bumiagent.one
+  </div>
+  <div class="script">
+    "Hey, this is <strong>Bumi Agent</strong> — a no-code platform where anyone can launch, monetize, and manage AI agents on Celo blockchain in 10 seconds.<br><br>
+    The problem is simple: deploying a single AI agent that can receive payments on-chain takes <strong>2 to 4 weeks of engineering</strong>. Wallet infrastructure, payment integration, on-chain identity, escrow systems — all built from scratch.<br><br>
+    Bumi Agent reduces all of that to <strong>3 fields and 1 button</strong>. Let me show you."
+  </div>
+</div>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- DEMO 1 -->
+<div class="section section-anchor" id="s1">
+  <div class="section-num">01 — DEMO</div>
+  <h2>Deploy an <em>Agent</em></h2>
+  <div class="section-time">⏱ 60 seconds</div>
+  <div class="screen-dir">
+    <span class="label">Screen</span> Click "Deploy" in navbar → /deploy page
+  </div>
+  <div class="script">
+    "To deploy an agent, you only need 3 things:"
+  </div>
+  <div class="steps">
+    <div class="step"><span class="step-num">1</span><span class="step-text"><strong>Name</strong> → type <code>Climate Research Bot</code></span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text"><strong>Template</strong> → select <code>Research Agent</code></span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text"><strong>Price</strong> → set <code>0.15</code> cUSD per call</span></div>
+  </div>
+  <div class="script">
+    "Click Deploy — and within seconds, the platform automatically:
+    <ul class="bullet-list">
+      <li>Generates an encrypted wallet (<strong>AES-256-GCM</strong>)</li>
+      <li>Registers the agent as an on-chain NFT via <strong>ERC-8004</strong></li>
+      <li>Configures an <strong>x402</strong> payment endpoint</li>
+      <li>The agent is immediately live and ready to earn <strong>cUSD</strong></li>
+    </ul>
+    Zero code. Zero Solidity. Zero wallet setup."
+  </div>
+</div>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- DEMO 2 -->
+<div class="section section-anchor" id="s2">
+  <div class="section-num">02 — DEMO</div>
+  <h2>Chat with an <em>Agent</em></h2>
+  <div class="section-time">⏱ 60 seconds</div>
+  <div class="screen-dir">
+    <span class="label">Screen</span> Open an agent from Registry → click Chat
+  </div>
+  <div class="script">
+    "Now let's chat with a deployed agent."
+  </div>
+  <div class="screen-dir">
+    <span class="label">Action</span> Type a question in the chat interface
+  </div>
+  <div class="script">
+    "Every incoming chat call is automatically monetized via the <strong>x402 protocol</strong>. The agent creator receives cUSD revenue instantly — no payment gateway setup required.<br><br>
+    Behind the scenes, the platform has <strong>8 AI models</strong> with smart routing. Free agents use free models — Claude 4.6 Sonnet, DeepSeek R1, Gemini Flash, Llama 4 Scout, Mistral Medium. Premium agents unlock GPT-4o, Gemini 2.5 Pro, and Claude 4 Opus. If one model fails, it automatically falls back to another. <strong>Zero downtime.</strong>"
+  </div>
+</div>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- DEMO 3 -->
+<div class="section section-anchor" id="s3">
+  <div class="section-num">03 — DEMO</div>
+  <h2>Analytics <em>Dashboard</em></h2>
+  <div class="section-time">⏱ 45 seconds</div>
+  <div class="screen-dir">
+    <span class="label">Screen</span> Click on an agent → scroll to the Analytics section
+  </div>
+  <div class="script">
+    "Every agent has its own analytics dashboard with <strong>30 days of data</strong>:
+    <ul class="bullet-list">
+      <li><strong>Call Trends</strong> — daily call volume as a line chart</li>
+      <li><strong>Revenue</strong> — cUSD earnings as an area chart</li>
+      <li><strong>Model Usage</strong> — AI model distribution as a pie chart</li>
+    </ul>
+    All real-time, served directly from the production database."
+  </div>
+</div>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- DEMO 4 -->
+<div class="section section-anchor" id="s4">
+  <div class="section-num">04 — DEMO</div>
+  <h2>Agent <em>Registry</em></h2>
+  <div class="section-time">⏱ 45 seconds</div>
+  <div class="screen-dir">
+    <span class="label">Screen</span> Navigate to /registry
+  </div>
+  <div class="script">
+    "The Registry is like an <strong>'App Store' for AI agents</strong>. Every deployed agent appears here — complete with trust badges, pricing, and call count.<br><br>
+    Trust badges level up automatically based on usage:
+    <ul class="bullet-list">
+      <li><strong>Grey</strong> — new, 0 calls</li>
+      <li><strong>Blue</strong> — established, 10+ calls</li>
+      <li><strong>Silver</strong> — trusted, 50+ calls</li>
+      <li><strong>Gold</strong> — elite, 100+ calls</li>
+    </ul>
+    Plus, agent owners can verify their identity through <strong>Self Protocol</strong> — proof-of-human, anti-sybil."
+  </div>
+</div>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- DEMO 5 -->
+<div class="section section-anchor" id="s5">
+  <div class="section-num">05 — DEMO</div>
+  <h2>Smart <em>Contracts</em></h2>
+  <div class="section-time">⏱ 45 seconds</div>
+  <div class="screen-dir">
+    <span class="label">Screen</span> Open Celoscan — show the 3 verified contracts
+  </div>
+  <div class="script">
+    "Everything runs on top of <strong>3 smart contracts</strong> verified on Celo Mainnet:
+    <ul class="bullet-list">
+      <li><strong>SpawnRegistry</strong> — ERC-721 + ERC-8004. Every agent is registered as an NFT with on-chain identity and subscription management.</li>
+      <li><strong>AgentCommerce</strong> — ERC-8183. A job escrow system — clients create tasks, fund escrow, agents deliver, clients approve, funds release. Fully trustless.</li>
+      <li><strong>EarthPool</strong> — A ReFi smart contract. 15% of premium subscription revenue automatically goes here to fund environmental campaigns on Celo. Fully transparent, on-chain.</li>
+    </ul>"
+  </div>
+</div>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- DEMO 6 -->
+<div class="section section-anchor" id="s6">
+  <div class="section-num">06 — DEMO</div>
+  <h2>EarthPool <em>ReFi</em></h2>
+  <div class="section-time">⏱ 30 seconds</div>
+  <div class="screen-dir">
+    <span class="label">Screen</span> Show EarthPool contract on Celoscan
+  </div>
+  <div class="script">
+    "This is what makes Bumi Agent unique — every premium agent <strong>automatically contributes to the environment</strong>. 15% of revenue goes into the EarthPool contract. When funds reach the threshold, a new campaign is triggered.<br><br>
+    AI growth and environmental sustainability go hand in hand — aligned with Celo's mission: <strong>prosperity for all.</strong>"
+  </div>
+</div>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- TECH -->
+<div class="section section-anchor" id="s7">
+  <div class="section-num">07 — DEEP DIVE</div>
+  <h2>Tech <em>Architecture</em></h2>
+  <div class="section-time">⏱ 60 seconds</div>
+  <div class="screen-dir">
+    <span class="label">Screen</span> Pitch deck Architecture slide or README diagram
+  </div>
+  <div class="script">
+    "Architecturally, Bumi Agent consists of <strong>3 layers</strong>:"
+  </div>
+
+  <div class="script">
+    <strong>Frontend</strong> — Next.js 16 with TypeScript and Tailwind CSS v4. Wallet connection via RainbowKit + wagmi. Analytics charts powered by Recharts. Fully mobile-responsive. Deployed on Vercel.
+  </div>
+  <div class="script">
+    <strong>Backend</strong> — Hono, a lightweight Node.js framework. 16 REST API endpoints. PostgreSQL database on Supabase via Drizzle ORM. Caching and rate limiting on Upstash Redis. LLM gateway through OpenRouter — one endpoint, 8 models. Payment processing via x402 protocol. Wallet encryption using AES-256-GCM. Deployed on Railway.
+  </div>
+  <div class="script">
+    <strong>Blockchain</strong> — 3 smart contracts on Celo Mainnet, written in Solidity 0.8.25 with Foundry. Using OpenZeppelin libraries — ERC-721, ReentrancyGuard, Ownable. 85 unit tests, full coverage. All verified on Celoscan.
+  </div>
+
+  <table class="tech-table">
+    <thead><tr><th>Technology</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td colspan="2" class="layer-label">Frontend</td></tr>
+      <tr><td>Next.js 16 + TypeScript</td><td>App Router, SSR/SSG</td></tr>
+      <tr><td>Tailwind CSS v4</td><td>Utility-first styling</td></tr>
+      <tr><td>Recharts</td><td>Analytics charts (line, area, pie)</td></tr>
+      <tr><td>RainbowKit + wagmi + viem</td><td>Wallet connection + blockchain interactions</td></tr>
+      <tr><td>Vercel</td><td>Hosting + CDN</td></tr>
+      <tr><td colspan="2" class="layer-label">Backend</td></tr>
+      <tr><td>Hono + Node.js</td><td>Lightweight REST API framework</td></tr>
+      <tr><td>Drizzle ORM</td><td>Type-safe database queries</td></tr>
+      <tr><td>PostgreSQL (Supabase)</td><td>Persistent data store</td></tr>
+      <tr><td>Upstash Redis</td><td>Rate limiting + caching</td></tr>
+      <tr><td>OpenRouter</td><td>Unified LLM gateway (8 models)</td></tr>
+      <tr><td>x402 Protocol</td><td>HTTP-native micropayments</td></tr>
+      <tr><td>AES-256-GCM</td><td>Wallet key encryption</td></tr>
+      <tr><td>Railway</td><td>Backend hosting</td></tr>
+      <tr><td colspan="2" class="layer-label">Blockchain</td></tr>
+      <tr><td>Solidity 0.8.25</td><td>Smart contract language</td></tr>
+      <tr><td>Foundry</td><td>Build + test framework</td></tr>
+      <tr><td>OpenZeppelin</td><td>Security libraries (ERC-721, ReentrancyGuard)</td></tr>
+      <tr><td>Celo Mainnet</td><td>L1 blockchain</td></tr>
+      <tr><td colspan="2" class="layer-label">Standards</td></tr>
+      <tr><td>ERC-8004</td><td>On-chain agent identity + URI</td></tr>
+      <tr><td>ERC-8183</td><td>Agentic commerce / job escrow</td></tr>
+      <tr><td>x402</td><td>HTTP payment protocol</td></tr>
+      <tr><td>Self Protocol</td><td>Proof-of-human verification</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- KILLER FEATURES -->
+<div class="section section-anchor" id="s8">
+  <div class="section-num">08 — SUMMARY</div>
+  <h2>5 Killer <em>Features</em></h2>
+  <div class="section-time">⏱ 45 seconds</div>
+  <div class="screen-dir">
+    <span class="label">Screen</span> Landing page or pitch deck
+  </div>
+  <div class="killer-grid">
+    <div class="killer-card">
+      <span class="killer-num">1</span>
+      <div>
+        <h4>10-Second Deploy</h4>
+        <p>3 fields, 1 click. From zero to earning in 10 seconds. No other platform can do this.</p>
+      </div>
+    </div>
+    <div class="killer-card">
+      <span class="killer-num">2</span>
+      <div>
+        <h4>x402 Pay-Per-Call</h4>
+        <p>HTTP-native payment protocol. Agents monetize from day one with zero setup.</p>
+      </div>
+    </div>
+    <div class="killer-card">
+      <span class="killer-num">3</span>
+      <div>
+        <h4>Multi-Model AI with Fallback</h4>
+        <p>8 models, tier-based routing, auto-fallback. Users always get a response.</p>
+      </div>
+    </div>
+    <div class="killer-card">
+      <span class="killer-num">4</span>
+      <div>
+        <h4>ERC-8183 Job Escrow</h4>
+        <p>Not just chat — agents can accept paid tasks through trustless on-chain escrow.</p>
+      </div>
+    </div>
+    <div class="killer-card">
+      <span class="killer-num">5</span>
+      <div>
+        <h4>EarthPool ReFi</h4>
+        <p>15% of revenue goes to the environment, on-chain, transparent. AI that cares about the planet.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- CLOSING -->
+<div class="section section-anchor" id="s9">
+  <div class="section-num">09 — CLOSING</div>
+  <h2>Traction & <em>CTA</em></h2>
+  <div class="section-time">⏱ 30 seconds</div>
+  <div class="screen-dir">
+    <span class="label">Screen</span> Traction slide from pitch deck or live registry
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card"><div class="val">12</div><div class="lbl">Agents Deployed</div></div>
+    <div class="metric-card"><div class="val">52+</div><div class="lbl">Paid API Calls</div></div>
+    <div class="metric-card"><div class="val">7.8</div><div class="lbl">cUSD Revenue</div></div>
+    <div class="metric-card"><div class="val">85</div><div class="lbl">Contract Tests</div></div>
+  </div>
+
+  <div class="script">
+    "Right now, Bumi Agent has 12 agents live on Celo Mainnet, 52+ paid API calls processed, 7.80 cUSD revenue generated, 3 verified smart contracts, 8 AI models running, and 16 API endpoints in production.<br><br>
+    Everything is live at <strong>bumiagent.one</strong>. Source code is open on GitHub.<br><br>
+    <strong>Bumi Agent — AI agents for everyone. Built with 🌱 on Celo.</strong>"
+  </div>
+
+  <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 24px;">
+    <div class="metric-card"><div class="val">3</div><div class="lbl">Verified Contracts</div></div>
+    <div class="metric-card"><div class="val">8</div><div class="lbl">AI Models</div></div>
+    <div class="metric-card"><div class="val">16</div><div class="lbl">API Endpoints</div></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="divider"><div class="divider-line"></div></div>
+<footer class="footer">
+  <p>
+    <a href="https://bumiagent.one">bumiagent.one</a> · 
+    <a href="https://github.com/cryptoeights/bumiagent">GitHub</a> · 
+    <a href="https://bumiagent.one/deck.html">Pitch Deck</a>
+    <br><br>Built with 🌱 on Celo
+  </p>
+</footer>
+
+</body>
+</html>
