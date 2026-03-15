@@ -42,6 +42,15 @@ export const AVAILABLE_MODELS: ModelDef[] = [
     description: 'Larger free model, better reasoning',
     webSearch: false,
   },
+  {
+    id: 'llama-4-scout',
+    slug: 'meta-llama/llama-4-scout:free',
+    name: 'Llama 4 Scout',
+    tier: 'free',
+    costPerCall: '0',
+    description: 'Meta Llama 4 Scout — strong reasoning, free tier',
+    webSearch: false,
+  },
   // Premium models
   {
     id: 'sonnet-4.6',
@@ -49,8 +58,26 @@ export const AVAILABLE_MODELS: ModelDef[] = [
     name: 'Claude Sonnet 4.6',
     tier: 'premium',
     costPerCall: '100000000000000000', // 0.10 cUSD
-    description: 'Most capable model — web search, deep reasoning',
+    description: 'Most capable model — deep reasoning, code, analysis',
     webSearch: true,
+  },
+  {
+    id: 'gpt-4o',
+    slug: 'openai/gpt-4o',
+    name: 'GPT-4o',
+    tier: 'premium',
+    costPerCall: '80000000000000000', // 0.08 cUSD
+    description: 'OpenAI flagship — fast, multimodal, versatile',
+    webSearch: false,
+  },
+  {
+    id: 'gemini-2.5-pro',
+    slug: 'google/gemini-2.5-pro-preview',
+    name: 'Gemini 2.5 Pro',
+    tier: 'premium',
+    costPerCall: '80000000000000000', // 0.08 cUSD
+    description: 'Google Gemini — strong reasoning, long context',
+    webSearch: false,
   },
   {
     id: 'sonnet-4.6-online',
@@ -63,8 +90,9 @@ export const AVAILABLE_MODELS: ModelDef[] = [
   },
 ];
 
-// Free model fallback chain
+// Fallback chains by tier
 const FREE_FALLBACKS = AVAILABLE_MODELS.filter(m => m.tier === 'free').map(m => m.slug);
+const PREMIUM_FALLBACKS = AVAILABLE_MODELS.filter(m => m.tier === 'premium').map(m => m.slug);
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -74,6 +102,7 @@ export interface ChatMessage {
 export interface ChatResponse {
   content: string;
   model: string;
+  modelTier: 'free' | 'premium';
   tokensUsed: number;
   finishReason: string;
 }
@@ -82,17 +111,39 @@ export function getModelDef(modelId: string): ModelDef | undefined {
   return AVAILABLE_MODELS.find(m => m.id === modelId);
 }
 
+/** Get the fallback chain for a given subscription tier */
+export function getFallbacksForTier(tier: 'free' | 'premium'): string[] {
+  return tier === 'premium' ? PREMIUM_FALLBACKS : FREE_FALLBACKS;
+}
+
+/** Get models available for a given tier. Free-tier sees all but premium marked as locked. */
+export function getModelsForTier(tier: 'free' | 'premium') {
+  return AVAILABLE_MODELS.map(m => ({
+    id: m.id,
+    name: m.name,
+    tier: m.tier,
+    costPerCall: m.costPerCall,
+    description: m.description,
+    webSearch: m.webSearch,
+    available: tier === 'premium' || m.tier === 'free',
+  }));
+}
+
 /**
  * Call OpenRouter for a chat completion.
  * If modelId is provided, use that specific model.
- * Otherwise, use free model fallback chain.
+ * Otherwise, auto-route based on agent's subscription tier.
  */
 export async function chatCompletion(
   messages: ChatMessage[],
   modelId?: string,
+  agentTier: 'free' | 'premium' = 'free',
 ): Promise<ChatResponse> {
   const specificModel = modelId ? getModelDef(modelId) : undefined;
-  const modelsToTry = specificModel ? [specificModel.slug] : FREE_FALLBACKS;
+  const modelsToTry = specificModel
+    ? [specificModel.slug]
+    : getFallbacksForTier(agentTier);
+  const resolvedTier = specificModel?.tier ?? agentTier;
   let lastError: Error | null = null;
 
   for (const model of modelsToTry) {
@@ -129,9 +180,14 @@ export async function chatCompletion(
         continue;
       }
 
+      // Determine actual tier of the model that responded
+      const actualModel = data.model || model;
+      const actualTier = AVAILABLE_MODELS.find(m => m.slug === actualModel)?.tier ?? resolvedTier;
+
       return {
         content: choice.message.content,
-        model: data.model || model,
+        model: actualModel,
+        modelTier: actualTier,
         tokensUsed: data.usage?.total_tokens || 0,
         finishReason: choice.finish_reason || 'unknown',
       };

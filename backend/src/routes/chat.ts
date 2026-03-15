@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { agents, callLogs } from '../db/schema.js';
 import { getTemplate } from '../data/templates.js';
-import { chatCompletion, getModelDef, AVAILABLE_MODELS, type ChatMessage } from '../services/openrouter.js';
+import { chatCompletion, getModelDef, getModelsForTier, type ChatMessage } from '../services/openrouter.js';
 import { checkRateLimit } from '../middleware/rateLimit.js';
 import { getPaymentInfo } from '../middleware/x402.js';
 import crypto from 'node:crypto';
@@ -21,20 +21,22 @@ const chatSchema = z.object({
   modelId: z.string().optional(), // Optional model selection
 });
 
-// ─── GET /agents/:agentId/models — Available models ─────
+// ─── GET /agents/:agentId/models — Available models (tier-aware) ─────
 
 chatRoutes.get('/:agentId/models', async (c) => {
-  // Return available models with pricing
-  const models = AVAILABLE_MODELS.map(m => ({
-    id: m.id,
-    name: m.name,
-    tier: m.tier,
-    costPerCall: m.costPerCall,
-    description: m.description,
-    webSearch: m.webSearch,
-  }));
+  const agentId = Number(c.req.param('agentId'));
+  if (isNaN(agentId)) return c.json({ error: 'Invalid agent ID' }, 400);
 
-  return c.json({ models });
+  // Look up agent to get subscription tier
+  const [agent] = await db.select()
+    .from(agents)
+    .where(eq(agents.agentId, agentId))
+    .limit(1);
+
+  const agentTier = (agent?.subscriptionTier as 'free' | 'premium') || 'free';
+  const models = getModelsForTier(agentTier);
+
+  return c.json({ models, agentTier });
 });
 
 // ─── POST /agents/:agentId/chat ─────────────────────────
@@ -63,33 +65,40 @@ chatRoutes.post('/:agentId/chat', async (c) => {
   if (!agent.isActive) return c.json({ error: 'Agent is inactive' }, 403);
 
   const isOwnerCall = callerAddress?.toLowerCase() === agent.ownerAddress.toLowerCase();
+  const agentTier = (agent.subscriptionTier as 'free' | 'premium') || 'free';
 
   // Model cost logic:
   // - Free models: owner = free, non-owner = agent price (handled by x402 middleware)
-  // - Premium models: everyone pays model cost per call
+  // - Premium models: everyone pays per call UNLESS agent has premium subscription (included)
   const selectedModel = modelId ? getModelDef(modelId) : undefined;
-  const isPremiumModel = selectedModel?.tier === 'premium';
+  const isPremiumModel = selectedModel?.tier === 'premium' || (!selectedModel && agentTier === 'premium');
 
   if (isPremiumModel) {
-    // Premium model requires payment from EVERYONE (including owner)
-    const txHash = c.req.header('x-payment-txhash');
-    if (!txHash) {
-      return c.json({
-        x402Version: 1,
-        accepts: [{
-          scheme: 'exact',
-          network: 'celo',
-          maxAmountRequired: selectedModel!.costPerCall,
-          resource: c.req.url,
-          payTo: agent.agentWallet,
-          asset: '0x765DE816845861e75A25fCA122bb6898B8B1282a',
-          description: `${selectedModel!.name} — ${selectedModel!.costPerCall} wei cUSD per call`,
-          modelId: selectedModel!.id,
-        }],
-      }, 402);
+    // Premium model payment check:
+    // - Premium subscription agents: premium models included (no per-call payment)
+    // - Free-tier agents: everyone pays per call for premium models
+    const premiumIncluded = agentTier === 'premium';
+
+    if (!premiumIncluded) {
+      const txHash = c.req.header('x-payment-txhash');
+      if (!txHash) {
+        const modelForPayment = selectedModel || getModelDef('sonnet-4.6');
+        return c.json({
+          x402Version: 1,
+          accepts: [{
+            scheme: 'exact',
+            network: 'celo',
+            maxAmountRequired: modelForPayment!.costPerCall,
+            resource: c.req.url,
+            payTo: agent.agentWallet,
+            asset: '0x765DE816845861e75A25fCA122bb6898B8B1282a',
+            description: `${modelForPayment!.name} — ${modelForPayment!.costPerCall} wei cUSD per call`,
+            modelId: modelForPayment!.id,
+          }],
+        }, 402);
+      }
     }
     // TX verification is done by x402 middleware for non-owners
-    // For owners using premium models, we trust the TX hash (middleware only checks non-owners)
   }
 
   // Free model: rate limit for owner, x402 for non-owner (already handled by middleware)
@@ -119,7 +128,7 @@ chatRoutes.post('/:agentId/chat', async (c) => {
   ];
 
   try {
-    const response = await chatCompletion(messages, modelId);
+    const response = await chatCompletion(messages, modelId, agentTier);
 
     // Log the call
     const messageHash = '0x' + crypto.createHash('sha256').update(message).digest('hex').slice(0, 64);
@@ -127,14 +136,14 @@ chatRoutes.post('/:agentId/chat', async (c) => {
     const paymentInfo = getPaymentInfo(c);
 
     const revenue = isPremiumModel
-      ? selectedModel!.costPerCall
+      ? (selectedModel?.costPerCall || '0')
       : (paymentInfo?.revenue || '0');
 
     // EarthPool split logic:
-    // - Free tier owner: 15% of agent revenue to EarthPool
-    // - Free tier owner + Sonnet: 100% of Sonnet cost to EarthPool
-    // - Premium tier owner: 0% to EarthPool (owner keeps all)
-    const ownerTier = agent.subscriptionTier || 'free';
+    // - Premium subscription: premium models included, owner keeps all revenue
+    // - Free tier + premium model: 100% to EarthPool
+    // - Free tier + free model: 15% to EarthPool, 85% to owner
+    const ownerTier = agentTier;
     const revenueBigInt = BigInt(revenue);
     let earthPoolShare = 0n;
     let ownerShare = 0n;
@@ -166,7 +175,7 @@ chatRoutes.post('/:agentId/chat', async (c) => {
       ownerShare: ownerShare.toString(),
       llmModel: response.model,
       llmTokensUsed: response.tokensUsed,
-      modelTier: isPremiumModel ? 'premium' : 'free',
+      modelTier: response.modelTier,
       isOwnerCall: isOwnerCall && !isPremiumModel,
       paymentTxHash: paymentInfo?.txHash || c.req.header('x-payment-txhash') || null,
     });
@@ -174,6 +183,7 @@ chatRoutes.post('/:agentId/chat', async (c) => {
     return c.json({
       response: response.content,
       model: response.model,
+      modelTier: response.modelTier,
       modelId: modelId || 'auto',
       tokensUsed: response.tokensUsed,
       agentId,

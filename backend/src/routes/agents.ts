@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { eq, desc, sql } from 'drizzle-orm';
+import { eq, desc, sql, and, gte } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { agents, callLogs, jobs } from '../db/schema.js';
 import { generateAgentWallet } from '../services/wallet.js';
@@ -253,6 +253,67 @@ agentRoutes.get('/:agentId/stats', async (c) => {
     freeModelCalls: stats?.freeModelCalls || 0,
     premiumModelCalls: stats?.premiumModelCalls || 0,
     createdAt: agent.createdAt,
+  });
+});
+
+// ─── GET /agents/:agentId/analytics — Time-series analytics ─────
+
+agentRoutes.get('/:agentId/analytics', async (c) => {
+  const agentId = Number(c.req.param('agentId'));
+  if (isNaN(agentId)) return c.json({ error: 'Invalid agent ID' }, 400);
+
+  const days = Math.min(Number(c.req.query('days') || 30), 90);
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+
+  // Daily call and revenue breakdown
+  const dailyRows = await db.select({
+    date: sql<string>`to_char(${callLogs.createdAt}::date, 'YYYY-MM-DD')`,
+    count: sql<number>`count(*)::int`,
+    revenue: sql<string>`coalesce(sum(${callLogs.revenue}), 0)::text`,
+    freeCount: sql<number>`count(*) filter (where ${callLogs.modelTier} = 'free' or ${callLogs.modelTier} is null)::int`,
+    premiumCount: sql<number>`count(*) filter (where ${callLogs.modelTier} = 'premium')::int`,
+  })
+  .from(callLogs)
+  .where(and(eq(callLogs.agentId, agentId), gte(callLogs.createdAt, since)))
+  .groupBy(sql`${callLogs.createdAt}::date`)
+  .orderBy(sql`${callLogs.createdAt}::date`);
+
+  // Model usage breakdown
+  const modelRows = await db.select({
+    model: sql<string>`coalesce(${callLogs.llmModel}, 'unknown')`,
+    tier: sql<string>`coalesce(${callLogs.modelTier}, 'free')`,
+    count: sql<number>`count(*)::int`,
+  })
+  .from(callLogs)
+  .where(and(eq(callLogs.agentId, agentId), gte(callLogs.createdAt, since)))
+  .groupBy(callLogs.llmModel, callLogs.modelTier)
+  .orderBy(sql`count(*) desc`);
+
+  // Fill in missing dates with zeros
+  const dailyCalls: { date: string; count: number; revenue: string; freeCount: number; premiumCount: number }[] = [];
+  const dateMap = new Map(dailyRows.map(r => [r.date, r]));
+  for (let d = new Date(since); d <= new Date(); d.setDate(d.getDate() + 1)) {
+    const key = d.toISOString().slice(0, 10);
+    const row = dateMap.get(key);
+    dailyCalls.push({
+      date: key,
+      count: row?.count || 0,
+      revenue: row?.revenue || '0',
+      freeCount: row?.freeCount || 0,
+      premiumCount: row?.premiumCount || 0,
+    });
+  }
+
+  return c.json({
+    agentId,
+    days,
+    dailyCalls,
+    modelUsage: modelRows.map(r => ({
+      model: r.model,
+      tier: r.tier,
+      count: r.count,
+    })),
   });
 });
 

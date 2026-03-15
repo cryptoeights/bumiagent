@@ -41,13 +41,13 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Celo Mainnet Contract Deployment** `risk:high` `depends:[]`
+- [x] **S01: Celo Mainnet Contract Deployment** `risk:high` `depends:[]`
   > After this: all 3 contracts are live on Celo Mainnet, addresses wired into backend config
-- [ ] **S02: Multi-Model Agent Routing** `risk:medium` `depends:[]`
+- [x] **S02: Multi-Model Agent Routing** `risk:medium` `depends:[]`
   > After this: free-tier agents use free models, premium agents use premium models in chat
-- [ ] **S03: Advanced Analytics Dashboard** `risk:low` `depends:[]`
+- [x] **S03: Advanced Analytics Dashboard** `risk:low` `depends:[]`
   > After this: per-agent analytics page shows call trends, revenue charts, model usage breakdown
-- [ ] **S04: Mobile-Responsive UI** `risk:low` `depends:[]`
+- [x] **S04: Mobile-Responsive UI** `risk:low` `depends:[]`
   > After this: all pages render correctly on 375px mobile viewport
 
 ## Boundary Map

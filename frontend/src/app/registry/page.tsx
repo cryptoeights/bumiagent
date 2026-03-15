@@ -69,7 +69,7 @@ export default function RegistryPage() {
     <div className="noise-bg grid-bg min-h-screen">
       <Navbar />
 
-      <div className="pt-24 pb-20 px-6">
+      <div className="pt-24 pb-20 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">

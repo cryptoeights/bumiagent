@@ -127,7 +127,7 @@ export default function DeployPage() {
     <div className="noise-bg grid-bg min-h-screen">
       <Navbar />
 
-      <div className="pt-24 pb-20 px-6">
+      <div className="pt-24 pb-20 px-4 sm:px-6">
         <div className="max-w-lg mx-auto">
           {/* Header */}
           <div className="text-center mb-10">
@@ -301,7 +301,7 @@ export default function DeployPage() {
               {/* Template */}
               <div>
                 <label className="block text-sm font-semibold mb-2">Template</label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {templates.map(t => (
                     <button
                       key={t.id}

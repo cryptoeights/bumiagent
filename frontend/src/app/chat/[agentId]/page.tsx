@@ -13,7 +13,7 @@ import { CUSD_ADDRESS, ERC20_ABI } from '@/lib/contracts';
 interface Message { role: 'user' | 'assistant'; content: string; }
 interface ConvSummary { id: number; title: string; messageCount: number; updatedAt: string; }
 interface AgentInfo { agentId: number; name: string; templateId: number; pricePerCall: string; ownerAddress: string; agentWallet: string; }
-interface ModelInfo { id: string; name: string; tier: 'free' | 'premium'; costPerCall: string; description: string; webSearch: boolean; }
+interface ModelInfo { id: string; name: string; tier: 'free' | 'premium'; costPerCall: string; description: string; webSearch: boolean; available: boolean; }
 
 export default function ChatPage() {
   const params = useParams();
@@ -23,6 +23,7 @@ export default function ChatPage() {
 
   const [agent, setAgent] = useState<AgentInfo | null>(null);
   const [models, setModels] = useState<ModelInfo[]>([]);
+  const [agentTier, setAgentTier] = useState<'free' | 'premium'>('free');
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [convList, setConvList] = useState<ConvSummary[]>([]);
   const [activeConvId, setActiveConvId] = useState<number | null>(null);
@@ -32,7 +33,7 @@ export default function ChatPage() {
   const [error, setError] = useState('');
   const [paymentRequired, setPaymentRequired] = useState<{ price: string; payTo: string; amount: string; modelName?: string } | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'sending' | 'confirming' | 'chatting'>('idle');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Refs to avoid stale closures in callbacks
@@ -58,9 +59,13 @@ export default function ChatPage() {
   // Load agent + models
   useEffect(() => {
     apiFetch<{ agent: AgentInfo }>(`/agents/${agentId}`).then(d => setAgent(d.agent)).catch(() => {});
-    apiFetch<{ models: ModelInfo[] }>(`/agents/${agentId}/models`).then(d => {
+    apiFetch<{ models: ModelInfo[]; agentTier: 'free' | 'premium' }>(`/agents/${agentId}/models`).then(d => {
       setModels(d.models);
-      if (d.models.length > 0) setSelectedModel(d.models[0].id);
+      setAgentTier(d.agentTier || 'free');
+      // Default to first available model for the agent's tier
+      const tier = d.agentTier || 'free';
+      const defaultModel = d.models.find(m => m.tier === tier && m.available) || d.models.find(m => m.available);
+      if (defaultModel) setSelectedModel(defaultModel.id);
     }).catch(() => {});
   }, [agentId]);
 
@@ -211,7 +216,7 @@ export default function ChatPage() {
     : paymentStatus === 'chatting' ? 'Payment confirmed! Getting response...' : '';
 
   const costDisplay = currentModel?.tier === 'premium'
-    ? `${formatCUSD(currentModel.costPerCall)} cUSD/msg`
+    ? agentTier === 'premium' ? 'Included' : `${formatCUSD(currentModel.costPerCall)} cUSD/msg`
     : isOwner ? 'Free' : agent ? `${formatCUSD(agent.pricePerCall)} cUSD/msg` : '...';
 
   if (!mounted) return null;
@@ -220,8 +225,11 @@ export default function ChatPage() {
     <div className="noise-bg min-h-screen flex flex-col">
       <Navbar />
       <div className="flex-1 flex pt-16">
-        {/* Sidebar */}
-        <div className={`${sidebarOpen ? 'w-64' : 'w-0'} shrink-0 border-r border-zinc-800/50 bg-zinc-950/50 transition-all overflow-hidden flex flex-col`}>
+        {/* Sidebar — overlay on mobile, push on desktop */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />
+        )}
+        <div className={`${sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full md:translate-x-0'} fixed md:relative z-40 md:z-auto h-[calc(100vh-4rem)] md:h-auto shrink-0 border-r border-zinc-800/50 bg-zinc-950 md:bg-zinc-950/50 transition-all overflow-hidden flex flex-col`}>
           <div className="p-3 border-b border-zinc-800/50">
             <button onClick={startNewChat}
               className="w-full px-3 py-2 rounded-lg bg-[var(--celo-green)]/10 text-[var(--celo-green)] text-xs font-semibold hover:bg-[var(--celo-green)]/20 transition-all flex items-center gap-2">
@@ -249,7 +257,7 @@ export default function ChatPage() {
         {/* Main Chat */}
         <div className="flex-1 flex flex-col">
           {/* Header + Model selector */}
-          <div className="px-6 py-3 border-b border-zinc-800/50 flex items-center gap-3">
+          <div className="px-3 sm:px-6 py-3 border-b border-zinc-800/50 flex items-center gap-2 sm:gap-3">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-zinc-500 hover:text-zinc-300 transition-colors text-lg">
               {sidebarOpen ? '◁' : '▷'}
             </button>
@@ -266,15 +274,17 @@ export default function ChatPage() {
               </div>
             </div>
             <select value={selectedModel} onChange={e => setSelectedModel(e.target.value)}
-              className="px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 focus:outline-none focus:border-[var(--celo-green)]/50 cursor-pointer shrink-0">
+              className="px-2 sm:px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 focus:outline-none focus:border-[var(--celo-green)]/50 cursor-pointer shrink-0 max-w-[140px] sm:max-w-none">
               <optgroup label="Free Models">
                 {models.filter(m => m.tier === 'free').map(m => (
                   <option key={m.id} value={m.id}>{m.name}</option>
                 ))}
               </optgroup>
-              <optgroup label="Premium (pay per call)">
+              <optgroup label={agentTier === 'premium' ? 'Premium (included)' : 'Premium (pay per call)'}>
                 {models.filter(m => m.tier === 'premium').map(m => (
-                  <option key={m.id} value={m.id}>{m.name} — {formatCUSD(m.costPerCall)} cUSD</option>
+                  <option key={m.id} value={m.id}>
+                    {m.name}{!m.available ? ' 🔒' : ''} — {agentTier === 'premium' ? 'included' : `${formatCUSD(m.costPerCall)} cUSD`}
+                  </option>
                 ))}
               </optgroup>
             </select>
@@ -282,29 +292,36 @@ export default function ChatPage() {
 
           {/* Premium model info bar */}
           {currentModel?.tier === 'premium' && (
-            <div className="px-6 py-2 bg-[var(--celo-gold)]/5 border-b border-[var(--celo-gold)]/10 flex items-center gap-2 text-xs">
+            <div className="px-3 sm:px-6 py-2 bg-[var(--celo-gold)]/5 border-b border-[var(--celo-gold)]/10 flex flex-wrap items-center gap-2 text-xs">
               <span className="text-[var(--celo-gold)]">⚡</span>
               <span className="text-zinc-400">{currentModel.name}</span>
               <span className="text-zinc-600">·</span>
-              <span className="text-[var(--celo-gold)] font-mono">{formatCUSD(currentModel.costPerCall)} cUSD/msg</span>
+              {agentTier === 'premium' ? (
+                <span className="text-[var(--celo-green)] font-semibold">Included with Premium ✓</span>
+              ) : (
+                <span className="text-[var(--celo-gold)] font-mono">{formatCUSD(currentModel.costPerCall)} cUSD/msg</span>
+              )}
               {currentModel.webSearch && <>
                 <span className="text-zinc-600">·</span>
                 <span className="text-[var(--celo-green)]">🌐 Web Search</span>
               </>}
-              <span className="text-zinc-600">·</span>
-              <span className="text-zinc-500">Everyone pays per call</span>
+              {agentTier !== 'premium' && <>
+                <span className="text-zinc-600">·</span>
+                <span className="text-zinc-500">Everyone pays per call</span>
+              </>}
             </div>
           )}
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4">
             {messages.length === 0 && !paymentRequired && (
               <div className="text-center py-16">
                 <div className="text-4xl mb-3">💬</div>
                 <p className="text-zinc-500 text-sm">Start a conversation with {agent?.name || 'the agent'}</p>
                 {currentModel?.tier === 'free' && isOwner && <p className="text-zinc-600 text-xs mt-1">Free model — chat for free ✨</p>}
                 {currentModel?.tier === 'free' && !isOwner && agent && <p className="text-zinc-600 text-xs mt-1">Free model: {formatCUSD(agent.pricePerCall)} cUSD/msg</p>}
-                {currentModel?.tier === 'premium' && <p className="text-[var(--celo-gold)] text-xs mt-1">Premium: {formatCUSD(currentModel.costPerCall)} cUSD/msg for everyone</p>}
+                {currentModel?.tier === 'premium' && agentTier === 'premium' && <p className="text-[var(--celo-green)] text-xs mt-1">Premium model — included with subscription ✓</p>}
+                {currentModel?.tier === 'premium' && agentTier !== 'premium' && <p className="text-[var(--celo-gold)] text-xs mt-1">Premium: {formatCUSD(currentModel.costPerCall)} cUSD/msg for everyone</p>}
               </div>
             )}
 
@@ -376,7 +393,7 @@ export default function ChatPage() {
           </div>
 
           {/* Input */}
-          <div className="px-6 py-4 border-t border-zinc-800/50">
+          <div className="px-3 sm:px-6 py-3 sm:py-4 border-t border-zinc-800/50">
             <form onSubmit={sendMessage} className="flex gap-3">
               <input type="text" value={input} onChange={e => setInput(e.target.value)}
                 placeholder={currentModel?.tier === 'premium' ? `Message (${currentModel.name})...` : isOwner ? 'Type your message (free)...' : 'Type your message...'}

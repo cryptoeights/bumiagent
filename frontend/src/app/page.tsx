@@ -30,7 +30,7 @@ export default function Home() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative pt-32 pb-20 px-6">
+      <section className="relative pt-32 pb-20 px-4 sm:px-6">
         {/* Gradient orb */}
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-[var(--celo-green)]/10 blur-[120px] pointer-events-none" />
         
@@ -40,7 +40,7 @@ export default function Home() {
             Built on Celo 🌱
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
             Launch AI Agents
             <br />
             <span className="text-[var(--celo-green)] glow-text">in 10 Seconds</span>
@@ -88,7 +88,7 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="py-20 px-6">
+      <section className="py-20 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">
             Everything you need,{' '}
@@ -115,11 +115,11 @@ export default function Home() {
       <TopAgents />
 
       {/* Templates */}
-      <section className="py-20 px-6 border-t border-zinc-800/30">
+      <section className="py-20 px-4 sm:px-6 border-t border-zinc-800/30">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-4">10 Agent Templates</h2>
           <p className="text-center text-zinc-500 mb-12">Ready-to-deploy agents with crafted system prompts</p>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {TEMPLATES.map((t) => (
               <div
                 key={t.name}
@@ -135,7 +135,7 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 px-6 text-center">
+      <section className="py-24 px-4 sm:px-6 text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-4xl font-bold mb-4">
             Ready to <span className="text-[var(--celo-green)]">launch</span>?
@@ -153,8 +153,8 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-800/30 py-8 px-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between text-xs text-zinc-600">
+      <footer className="border-t border-zinc-800/30 py-8 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-600">
           <span className="font-[var(--font-display)]">Bumi Agent © 2026</span>
           <span>Powered by Celo 🌱</span>
         </div>

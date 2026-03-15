@@ -7,6 +7,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchCh
 import { celo } from 'wagmi/chains';
 import { Navbar } from '@/components/Navbar';
 import { TrustBadge } from '@/components/TrustBadge';
+import { AgentAnalytics } from '@/components/AgentAnalytics';
 import { apiFetch } from '@/lib/api';
 import { CUSD_ADDRESS, ERC20_ABI } from '@/lib/contracts';
 import { getTemplate, formatCUSD, shortenAddress, TRUST_TIERS, getTrustTier } from '@/lib/constants';
@@ -291,7 +292,7 @@ export default function AgentScanPage() {
     <div className="noise-bg grid-bg min-h-screen">
       <Navbar />
 
-      <div className="pt-24 pb-20 px-6">
+      <div className="pt-24 pb-20 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
           {/* Agent Header */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
@@ -356,7 +357,7 @@ export default function AgentScanPage() {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div className="p-4 rounded-xl border border-zinc-800/50 bg-zinc-900/30">
               <div className="text-xs text-zinc-500 mb-1">Total Calls</div>
               <div className="text-xl font-bold font-[var(--font-display)] text-[var(--celo-green)]">
@@ -420,7 +421,7 @@ export default function AgentScanPage() {
 
           {/* Call Breakdown */}
           {(stats?.totalCalls || 0) > 0 && (
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div className="p-4 rounded-xl border border-zinc-800/50 bg-zinc-900/30">
                 <div className="text-xs text-zinc-500 mb-1">Owner Calls (Free)</div>
                 <div className="text-lg font-bold font-[var(--font-display)]">{stats?.ownerCalls || 0}</div>
@@ -431,6 +432,11 @@ export default function AgentScanPage() {
               </div>
             </div>
           )}
+
+          {/* Analytics Charts */}
+          <div className="mb-6">
+            <AgentAnalytics agentId={agent.agentId} />
+          </div>
 
           {/* Hire Agent — Services & Quick Hire */}
           {agent.services && (agent.services as AgentService[]).length > 0 && (
