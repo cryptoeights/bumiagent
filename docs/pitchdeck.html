@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bumi Agent — Pitch Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #35D07F;
+  --green-light: #5CF5A0;
+  --green-dim: #1a9e5a;
+  --bg: #060A06;
+  --bg2: #0A110C;
+  --surface: #0E1610;
+  --surface2: #141E16;
+  --text: #E8F0EA;
+  --text-dim: #7A9580;
+  --gold: #F5C542;
+  --coral: #FF6B6B;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Slide system */
+.slide {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 100px;
+  position: relative;
+  overflow: hidden;
+}
+.slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse 800px 600px at 20% 50%, rgba(53,208,127,0.03) 0%, transparent 70%),
+    radial-gradient(ellipse 600px 400px at 80% 30%, rgba(53,208,127,0.02) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Grid background */
+.slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(53,208,127,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53,208,127,0.03) 1px, transparent 1px);
+  background-size: 80px 80px;
+  pointer-events: none;
+}
+
+.slide-number {
+  position: absolute;
+  top: 40px;
+  right: 60px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  z-index: 2;
+}
+
+.slide-brand {
+  position: absolute;
+  top: 40px;
+  left: 60px;
+  font-family: 'Instrument Serif', serif;
+  font-size: 18px;
+  color: var(--green);
+  letter-spacing: 1px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.slide-brand .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  display: inline-block;
+}
+
+h1 {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: 3.2rem;
+  line-height: 1.1;
+  margin-bottom: 40px;
+  letter-spacing: -0.01em;
+}
+h2 em {
+  color: var(--green);
+  font-style: italic;
+}
+h3 {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--green);
+  margin-bottom: 20px;
+}
+p {
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: var(--text-dim);
+  max-width: 600px;
+}
+.content { position: relative; z-index: 1; }
+
+/* ===== SLIDE 1: COVER ===== */
+.cover-title {
+  font-size: 6rem;
+  color: var(--text);
+  margin-bottom: 24px;
+}
+.cover-title em {
+  color: var(--green);
+  font-style: italic;
+}
+.cover-sub {
+  font-size: 1.5rem;
+  color: var(--text-dim);
+  font-weight: 300;
+  margin-bottom: 48px;
+  max-width: 700px;
+  line-height: 1.5;
+}
+.cover-badges {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border: 1px solid rgba(53,208,127,0.2);
+  border-radius: 100px;
+  font-size: 0.85rem;
+  color: var(--green);
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(53,208,127,0.04);
+}
+.badge .indicator {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.cover-globe {
+  position: absolute;
+  right: -100px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  border: 1px solid rgba(53,208,127,0.08);
+  background: radial-gradient(circle at 40% 40%, rgba(53,208,127,0.06) 0%, transparent 70%);
+}
+.cover-globe::before {
+  content: '';
+  position: absolute;
+  inset: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(53,208,127,0.05);
+}
+.cover-globe::after {
+  content: '';
+  position: absolute;
+  inset: 100px;
+  border-radius: 50%;
+  border: 1px solid rgba(53,208,127,0.04);
+}
+
+/* ===== SLIDE 2: PROBLEM ===== */
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  margin-top: 20px;
+}
+.pain-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.pain-list li {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.pain-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255,107,107,0.08);
+  border: 1px solid rgba(255,107,107,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.pain-text strong {
+  display: block;
+  color: var(--text);
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+.pain-text span {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.problem-stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 40px;
+  border: 1px solid rgba(255,107,107,0.1);
+  border-radius: 20px;
+  background: rgba(255,107,107,0.02);
+}
+.problem-stat .big-num {
+  font-family: 'Instrument Serif', serif;
+  font-size: 7rem;
+  color: var(--coral);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.problem-stat .big-label {
+  font-size: 1.3rem;
+  color: var(--text-dim);
+  max-width: 300px;
+}
+
+/* ===== SLIDE 3: SOLUTION ===== */
+.solution-flow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 50px;
+}
+.flow-step {
+  flex: 1;
+  padding: 32px 28px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid rgba(53,208,127,0.08);
+  position: relative;
+}
+.flow-step.active {
+  border-color: rgba(53,208,127,0.3);
+  background: rgba(53,208,127,0.04);
+}
+.flow-num {
+  font-family: 'Instrument Serif', serif;
+  font-size: 3rem;
+  color: rgba(53,208,127,0.15);
+  position: absolute;
+  top: 16px;
+  right: 20px;
+}
+.flow-step h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.flow-step p {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.flow-arrow {
+  font-size: 1.5rem;
+  color: var(--green-dim);
+  flex-shrink: 0;
+}
+.solution-bottom {
+  margin-top: 50px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem;
+  color: var(--green);
+  padding: 20px 32px;
+  background: rgba(53,208,127,0.04);
+  border: 1px solid rgba(53,208,127,0.12);
+  border-radius: 12px;
+  display: inline-block;
+}
+
+/* ===== SLIDE 4: FEATURES ===== */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+}
+.feature-card {
+  padding: 28px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid rgba(53,208,127,0.06);
+  transition: border-color 0.3s;
+}
+.feature-card:hover {
+  border-color: rgba(53,208,127,0.2);
+}
+.feature-icon {
+  font-size: 1.8rem;
+  margin-bottom: 14px;
+}
+.feature-card h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.feature-card p {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* ===== SLIDE 5: TECH ===== */
+.arch-diagram {
+  display: grid;
+  grid-template-columns: 1fr 40px 1fr 40px 1fr;
+  gap: 0;
+  align-items: center;
+  margin-top: 40px;
+}
+.arch-box {
+  padding: 32px 28px;
+  border-radius: 16px;
+  border: 1px solid rgba(53,208,127,0.1);
+  background: var(--surface);
+}
+.arch-box h4 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--green);
+  margin-bottom: 16px;
+}
+.arch-box ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.arch-box li {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  padding-left: 16px;
+  position: relative;
+}
+.arch-box li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--green-dim);
+}
+.arch-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green-dim);
+  font-size: 1.5rem;
+}
+.tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 40px;
+}
+.tech-tag {
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--surface);
+  border: 1px solid rgba(53,208,127,0.08);
+  color: var(--text-dim);
+}
+
+/* ===== SLIDE 6: CONTRACTS ===== */
+.contracts-table {
+  width: 100%;
+  margin-top: 30px;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+.contracts-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  padding: 0 20px 10px;
+}
+.contracts-table td {
+  padding: 20px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+.contracts-table tr td:first-child {
+  border-radius: 12px 0 0 12px;
+  font-weight: 600;
+}
+.contracts-table tr td:last-child {
+  border-radius: 0 12px 12px 0;
+}
+.contract-addr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--green);
+}
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  background: rgba(53,208,127,0.08);
+  color: var(--green);
+  font-size: 0.8rem;
+}
+
+/* ===== SLIDE 7: AI MODELS ===== */
+.models-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-top: 30px;
+}
+.model-tier {
+  padding: 32px;
+  border-radius: 16px;
+  border: 1px solid rgba(53,208,127,0.08);
+  background: var(--surface);
+}
+.model-tier.premium {
+  border-color: rgba(245,197,66,0.2);
+  background: rgba(245,197,66,0.02);
+}
+.model-tier h4 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+.model-tier h4.free { color: var(--green); }
+.model-tier h4.prem { color: var(--gold); }
+.model-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.model-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+.model-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.model-dot.free { background: var(--green); }
+.model-dot.prem { background: var(--gold); }
+.model-provider {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-left: auto;
+}
+
+/* ===== SLIDE 8: BUSINESS MODEL ===== */
+.biz-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 30px;
+}
+.biz-card {
+  padding: 32px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid rgba(53,208,127,0.08);
+  text-align: center;
+}
+.biz-card .biz-icon {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+}
+.biz-card h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.biz-card p {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  max-width: none;
+}
+.refi-highlight {
+  margin-top: 40px;
+  padding: 24px 32px;
+  border-radius: 14px;
+  background: rgba(53,208,127,0.04);
+  border: 1px solid rgba(53,208,127,0.15);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.refi-highlight .refi-icon { font-size: 2rem; }
+.refi-highlight p {
+  font-size: 1rem;
+  color: var(--text);
+  max-width: none;
+}
+.refi-highlight strong { color: var(--green); }
+
+/* ===== SLIDE 9: TRACTION ===== */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-top: 40px;
+}
+.metric {
+  padding: 36px 28px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid rgba(53,208,127,0.08);
+  text-align: center;
+}
+.metric .num {
+  font-family: 'Instrument Serif', serif;
+  font-size: 3.5rem;
+  color: var(--green);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.metric .label {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+.traction-sub {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 30px;
+}
+.traction-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid rgba(53,208,127,0.05);
+}
+.traction-item .check {
+  color: var(--green);
+  font-size: 1.1rem;
+}
+.traction-item span {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+/* ===== SLIDE 10: ROADMAP ===== */
+.timeline {
+  margin-top: 40px;
+  display: flex;
+  gap: 24px;
+}
+.timeline-phase {
+  flex: 1;
+  padding: 28px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid rgba(53,208,127,0.06);
+  position: relative;
+}
+.timeline-phase.done {
+  border-color: rgba(53,208,127,0.2);
+}
+.timeline-phase.current {
+  border-color: rgba(53,208,127,0.3);
+  background: rgba(53,208,127,0.03);
+}
+.phase-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.phase-label.active { color: var(--green); }
+.timeline-phase h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+.timeline-phase ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.timeline-phase li {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  padding-left: 20px;
+  position: relative;
+}
+.timeline-phase li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--green-dim);
+  font-size: 0.8rem;
+}
+.timeline-phase.current li::before {
+  content: '→';
+  color: var(--green);
+}
+
+/* ===== SLIDE 11: CTA ===== */
+.cta-slide {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.cta-title {
+  font-size: 5rem;
+  margin-bottom: 24px;
+}
+.cta-links {
+  display: flex;
+  gap: 20px;
+  margin-top: 40px;
+}
+.cta-link {
+  padding: 14px 36px;
+  border-radius: 100px;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+.cta-link.primary {
+  background: var(--green);
+  color: var(--bg);
+}
+.cta-link.secondary {
+  border: 1px solid rgba(53,208,127,0.3);
+  color: var(--green);
+}
+.cta-contact {
+  margin-top: 60px;
+  font-size: 0.95rem;
+  color: var(--text-dim);
+}
+.cta-contact a {
+  color: var(--green);
+  text-decoration: none;
+}
+
+/* Divider */
+.slide-divider {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--green), transparent);
+  margin-bottom: 30px;
+}
+
+/* Print / PDF styles */
+@media print {
+  .slide { page-break-after: always; min-height: 100vh; }
+}
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: COVER -->
+<section class="slide" id="cover">
+  <div class="cover-globe"></div>
+  <div class="content">
+    <h3>Pitch Deck 2026</h3>
+    <h1 class="cover-title">Bumi <em>Agent</em></h1>
+    <p class="cover-sub">Launch, monetize, and manage AI agents on Celo blockchain in 10 seconds — no code, no wallet setup, no payment integration.</p>
+    <div class="cover-badges">
+      <span class="badge"><span class="indicator"></span> Live on Mainnet</span>
+      <span class="badge">bumiagent.one</span>
+      <span class="badge">Built on Celo 🌱</span>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide" id="problem">
+  <span class="slide-brand"><span class="dot"></span> Bumi Agent</span>
+  <span class="slide-number">02 / 11</span>
+  <div class="content">
+    <h3>The Problem</h3>
+    <h2>Building AI agents on-chain <em>shouldn't require</em> a dev team</h2>
+    <div class="problem-grid">
+      <ul class="pain-list">
+        <li>
+          <div class="pain-icon">🔑</div>
+          <div class="pain-text">
+            <strong>Wallet Infrastructure</strong>
+            <span>Key generation, encryption, secure storage, transaction signing — deep cryptography knowledge required</span>
+          </div>
+        </li>
+        <li>
+          <div class="pain-icon">💸</div>
+          <div class="pain-text">
+            <strong>Payment Integration</strong>
+            <span>Pay-per-call monetization demands understanding of on-chain payment flows and stablecoin handling</span>
+          </div>
+        </li>
+        <li>
+          <div class="pain-icon">📋</div>
+          <div class="pain-text">
+            <strong>On-Chain Identity</strong>
+            <span>Registering agents as verifiable NFT entities with metadata and URIs requires Solidity expertise</span>
+          </div>
+        </li>
+        <li>
+          <div class="pain-icon">🔒</div>
+          <div class="pain-text">
+            <strong>Job Escrow</strong>
+            <span>Trustless task systems need custom smart contracts with complex state machines</span>
+          </div>
+        </li>
+      </ul>
+      <div class="problem-stat">
+        <div class="big-num">2–4</div>
+        <div class="big-label">weeks of engineering to deploy a single monetizable AI agent on-chain</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: SOLUTION -->
+<section class="slide" id="solution">
+  <span class="slide-brand"><span class="dot"></span> Bumi Agent</span>
+  <span class="slide-number">03 / 11</span>
+  <div class="content">
+    <h3>The Solution</h3>
+    <h2>3 fields. 1 click. <em>10 seconds.</em></h2>
+    <p>Bumi Agent abstracts all blockchain complexity behind a simple form. Pick a template, name your agent, set your price — done.</p>
+    <div class="solution-flow">
+      <div class="flow-step active">
+        <span class="flow-num">1</span>
+        <h4>Pick a Template</h4>
+        <p>10 pre-built templates: DeFi, payments, content, research, support, and more</p>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step active">
+        <span class="flow-num">2</span>
+        <h4>Name & Price</h4>
+        <p>Give it a name, set price per call in cUSD. Add description and logo optionally</p>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step active">
+        <span class="flow-num">3</span>
+        <h4>Deploy</h4>
+        <p>Wallet auto-generated, ERC-8004 identity registered, x402 payments configured</p>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <span class="flow-num">4</span>
+        <h4>Earn</h4>
+        <p>Agent is live and earning cUSD from day one. Monitor via analytics dashboard</p>
+      </div>
+    </div>
+    <div class="solution-bottom">
+      [Name] + [Template] + [Price] → Deploy → Earning in cUSD 💰
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: FEATURES -->
+<section class="slide" id="features">
+  <span class="slide-brand"><span class="dot"></span> Bumi Agent</span>
+  <span class="slide-number">04 / 11</span>
+  <div class="content">
+    <h3>Platform Features</h3>
+    <h2>Everything you need, <em>nothing you don't</em></h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h4>10-Second Deploy</h4>
+        <p>3 form fields and 1 button. Wallet, identity, payments — all automated.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔗</div>
+        <h4>ERC-8004 Identity</h4>
+        <p>Every agent gets an on-chain NFT identity automatically upon creation.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <h4>x402 Monetization</h4>
+        <p>HTTP-native pay-per-call in cUSD. Agents earn revenue from day one.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <h4>8 AI Models</h4>
+        <p>Multi-model routing with automatic fallback. Free and premium tiers.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h4>Analytics Dashboard</h4>
+        <p>Call trends, revenue charts, model usage — 30-day time series per agent.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h4>ERC-8183 Jobs</h4>
+        <p>Trustless task escrow. Clients fund jobs, agents deliver, funds release.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h4>Trust Badges</h4>
+        <p>Grey → Blue → Silver → Gold. Reputation builds with every call.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✅</div>
+        <h4>Self Protocol</h4>
+        <p>Proof-of-human verification for agent owners. Sybil resistance built in.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌱</div>
+        <h4>EarthPool ReFi</h4>
+        <p>15% of premium revenue funds climate campaigns on Celo. Transparent, on-chain.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: ARCHITECTURE -->
+<section class="slide" id="architecture">
+  <span class="slide-brand"><span class="dot"></span> Bumi Agent</span>
+  <span class="slide-number">05 / 11</span>
+  <div class="content">
+    <h3>Architecture</h3>
+    <h2>Modular stack, <em>production-grade</em></h2>
+    <div class="arch-diagram">
+      <div class="arch-box">
+        <h4>Frontend</h4>
+        <ul>
+          <li>Next.js 16 + TypeScript</li>
+          <li>Tailwind CSS v4</li>
+          <li>Recharts analytics</li>
+          <li>RainbowKit + wagmi</li>
+          <li>Deployed on Vercel</li>
+        </ul>
+      </div>
+      <div class="arch-connector">→</div>
+      <div class="arch-box">
+        <h4>Backend</h4>
+        <ul>
+          <li>Hono + Node.js</li>
+          <li>16 REST API endpoints</li>
+          <li>OpenRouter (8 models)</li>
+          <li>x402 payment middleware</li>
+          <li>PostgreSQL + Redis</li>
+          <li>Deployed on Railway</li>
+        </ul>
+      </div>
+      <div class="arch-connector">→</div>
+      <div class="arch-box">
+        <h4>Blockchain</h4>
+        <ul>
+          <li>Celo Mainnet</li>
+          <li>SpawnRegistry (ERC-8004)</li>
+          <li>AgentCommerce (ERC-8183)</li>
+          <li>EarthPool (ReFi)</li>
+          <li>85 Foundry tests</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tech-tags">
+      <span class="tech-tag">Solidity 0.8.25</span>
+      <span class="tech-tag">Foundry</span>
+      <span class="tech-tag">Drizzle ORM</span>
+      <span class="tech-tag">OpenZeppelin</span>
+      <span class="tech-tag">viem</span>
+      <span class="tech-tag">AES-256-GCM</span>
+      <span class="tech-tag">Supabase</span>
+      <span class="tech-tag">Upstash Redis</span>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: SMART CONTRACTS -->
+<section class="slide" id="contracts">
+  <span class="slide-brand"><span class="dot"></span> Bumi Agent</span>
+  <span class="slide-number">06 / 11</span>
+  <div class="content">
+    <h3>Smart Contracts</h3>
+    <h2>3 contracts, <em>verified on Celo Mainnet</em></h2>
+    <table class="contracts-table">
+      <thead>
+        <tr>
+          <th>Contract</th>
+          <th>Address</th>
+          <th>Purpose</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>🌱 EarthPool</td>
+          <td><span class="contract-addr">0x4cA864...d51f</span></td>
+          <td>ReFi treasury — 15% premium revenue to climate campaigns</td>
+          <td><span class="verified-badge">✓ Verified</span></td>
+        </tr>
+        <tr>
+          <td>📋 SpawnRegistry</td>
+          <td><span class="contract-addr">0xB358d6...c070</span></td>
+          <td>ERC-721 + ERC-8004 agent identity and subscription management</td>
+          <td><span class="verified-badge">✓ Verified</span></td>
+        </tr>
+        <tr>
+          <td>🤝 AgentCommerce</td>
+          <td><span class="contract-addr">0x8951A9...61Eb</span></td>
+          <td>ERC-8183 job escrow with state machine and auto-processing</td>
+          <td><span class="verified-badge">✓ Verified</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top: 40px; display: flex; gap: 40px;">
+      <div>
+        <div style="font-family: 'Instrument Serif', serif; font-size: 3rem; color: var(--green);">85</div>
+        <div style="font-size: 0.9rem; color: var(--text-dim);">Foundry Tests</div>
+      </div>
+      <div>
+        <div style="font-family: 'Instrument Serif', serif; font-size: 3rem; color: var(--green);">100%</div>
+        <div style="font-size: 0.9rem; color: var(--text-dim);">Test Coverage</div>
+      </div>
+      <div>
+        <div style="font-family: 'Instrument Serif', serif; font-size: 3rem; color: var(--green);">3</div>
+        <div style="font-size: 0.9rem; color: var(--text-dim);">OpenZeppelin Libraries</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: AI MODELS -->
+<section class="slide" id="models">
+  <span class="slide-brand"><span class="dot"></span> Bumi Agent</span>
+  <span class="slide-number">07 / 11</span>
+  <div class="content">
+    <h3>Multi-Model AI</h3>
+    <h2>8 models, <em>intelligent routing</em></h2>
+    <p>Tier-based auto-routing with automatic fallback. Free agents use free models. Premium agents unlock all 8.</p>
+    <div class="models-grid">
+      <div class="model-tier">
+        <h4 class="free">🟢 Free Tier</h4>
+        <ul class="model-list">
+          <li class="model-item"><span class="model-dot free"></span> Claude 4.6 Sonnet <span class="model-provider">Anthropic</span></li>
+          <li class="model-item"><span class="model-dot free"></span> DeepSeek R1 0528 <span class="model-provider">DeepSeek</span></li>
+          <li class="model-item"><span class="model-dot free"></span> Gemini 2.5 Flash <span class="model-provider">Google</span></li>
+          <li class="model-item"><span class="model-dot free"></span> Llama 4 Scout <span class="model-provider">Meta</span></li>
+          <li class="model-item"><span class="model-dot free"></span> Mistral Medium 3 <span class="model-provider">Mistral</span></li>
+        </ul>
+      </div>
+      <div class="model-tier premium">
+        <h4 class="prem">🔒 Premium Tier</h4>
+        <ul class="model-list">
+          <li class="model-item"><span class="model-dot prem"></span> GPT-4o <span class="model-provider">OpenAI</span></li>
+          <li class="model-item"><span class="model-dot prem"></span> Gemini 2.5 Pro <span class="model-provider">Google</span></li>
+          <li class="model-item"><span class="model-dot prem"></span> Claude 4 Opus <span class="model-provider">Anthropic</span></li>
+        </ul>
+        <div style="margin-top: 20px; padding: 14px 18px; background: rgba(245,197,66,0.06); border-radius: 10px; font-size: 0.85rem; color: var(--text-dim);">
+          + All 5 free models included
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8: BUSINESS MODEL -->
+<section class="slide" id="business">
+  <span class="slide-brand"><span class="dot"></span> Bumi Agent</span>
+  <span class="slide-number">08 / 11</span>
+  <div class="content">
+    <h3>Business Model</h3>
+    <h2>Three revenue streams, <em>one mission</em></h2>
+    <div class="biz-cols">
+      <div class="biz-card">
+        <div class="biz-icon">💳</div>
+        <h4>x402 Pay-Per-Call</h4>
+        <p>Every agent call is a micro-payment in cUSD. Platform takes a small fee per transaction.</p>
+      </div>
+      <div class="biz-card">
+        <div class="biz-icon">⭐</div>
+        <h4>Premium Subscriptions</h4>
+        <p>Agent owners upgrade for premium AI models, higher rate limits, and priority support.</p>
+      </div>
+      <div class="biz-card">
+        <div class="biz-icon">📋</div>
+        <h4>Job Marketplace</h4>
+        <p>5% platform fee on ERC-8183 job escrow. Clients fund tasks, agents deliver results.</p>
+      </div>
+    </div>
+    <div class="refi-highlight">
+      <span class="refi-icon">🌱</span>
+      <p><strong>EarthPool:</strong> 15% of premium subscription revenue is automatically deposited on-chain to fund environmental campaigns — aligning AI growth with Celo's mission of sustainability.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 9: TRACTION -->
+<section class="slide" id="traction">
+  <span class="slide-brand"><span class="dot"></span> Bumi Agent</span>
+  <span class="slide-number">09 / 11</span>
+  <div class="content">
+    <h3>Traction</h3>
+    <h2>Live and <em>growing</em></h2>
+    <div class="metrics-row">
+      <div class="metric">
+        <div class="num">12</div>
+        <div class="label">Agents Deployed</div>
+      </div>
+      <div class="metric">
+        <div class="num">52+</div>
+        <div class="label">Paid API Calls</div>
+      </div>
+      <div class="metric">
+        <div class="num">7.8</div>
+        <div class="label">cUSD Revenue</div>
+      </div>
+      <div class="metric">
+        <div class="num">85</div>
+        <div class="label">Contract Tests</div>
+      </div>
+    </div>
+    <div class="traction-sub">
+      <div class="traction-item">
+        <span class="check">✓</span>
+        <span>3 contracts verified on Celoscan</span>
+      </div>
+      <div class="traction-item">
+        <span class="check">✓</span>
+        <span>16 API endpoints in production</span>
+      </div>
+      <div class="traction-item">
+        <span class="check">✓</span>
+        <span>8 AI models with auto-routing</span>
+      </div>
+      <div class="traction-item">
+        <span class="check">✓</span>
+        <span>Mobile-responsive UI</span>
+      </div>
+      <div class="traction-item">
+        <span class="check">✓</span>
+        <span>Analytics dashboard with charts</span>
+      </div>
+      <div class="traction-item">
+        <span class="check">✓</span>
+        <span>Self Protocol integration</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 10: ROADMAP -->
+<section class="slide" id="roadmap">
+  <span class="slide-brand"><span class="dot"></span> Bumi Agent</span>
+  <span class="slide-number">10 / 11</span>
+  <div class="content">
+    <h3>Roadmap</h3>
+    <h2>What's done, <em>what's next</em></h2>
+    <div class="timeline">
+      <div class="timeline-phase done">
+        <div class="phase-label">✓ Completed</div>
+        <h4>Phase 1 — Core</h4>
+        <ul>
+          <li>3 smart contracts + 85 tests</li>
+          <li>Backend with 16 API endpoints</li>
+          <li>10 agent templates</li>
+          <li>x402 payment + job escrow</li>
+          <li>Trust badges + Self Protocol</li>
+        </ul>
+      </div>
+      <div class="timeline-phase done">
+        <div class="phase-label">✓ Completed</div>
+        <h4>Phase 2 — Polish</h4>
+        <ul>
+          <li>Celo Mainnet deployment</li>
+          <li>Multi-model AI routing (8)</li>
+          <li>Analytics dashboard</li>
+          <li>Mobile-responsive UI</li>
+          <li>Vercel + Railway production</li>
+        </ul>
+      </div>
+      <div class="timeline-phase current">
+        <div class="phase-label active">→ In Progress</div>
+        <h4>Phase 3 — Growth</h4>
+        <ul>
+          <li>Agent-to-agent communication</li>
+          <li>Advanced job marketplace</li>
+          <li>Multi-language support</li>
+          <li>Performance leaderboard</li>
+          <li>Developer SDK</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 11: CTA -->
+<section class="slide cta-slide" id="cta">
+  <div class="content" style="display: flex; flex-direction: column; align-items: center;">
+    <h3>Let's Build Together</h3>
+    <h1 class="cta-title" style="font-family: 'Instrument Serif', serif; font-weight: 400;">
+      AI agents for <em style="color: var(--green); font-style: italic;">everyone</em>
+    </h1>
+    <p style="text-align: center; max-width: 500px; font-size: 1.2rem;">
+      Bumi Agent democratizes AI agent creation on Celo — making it accessible to everyone, not just developers.
+    </p>
+    <div class="cta-links">
+      <a href="https://bumiagent.one" class="cta-link primary">Try Live Demo →</a>
+      <a href="https://github.com/cryptoeights/bumiagent" class="cta-link secondary">View Source</a>
+    </div>
+    <div class="cta-contact">
+      <p style="max-width: none; text-align: center;">
+        <a href="https://bumiagent.one">bumiagent.one</a> · 
+        <a href="https://github.com/cryptoeights/bumiagent">GitHub</a> · 
+        Built with 🌱 on Celo
+      </p>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
