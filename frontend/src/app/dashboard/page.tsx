@@ -6,6 +6,7 @@ import { useAccount } from 'wagmi';
 import { Navbar } from '@/components/Navbar';
 import { ConnectButton } from '@/components/ConnectButton';
 import { TrustBadge } from '@/components/TrustBadge';
+import { SelfVerification } from '@/components/SelfVerification';
 import { apiFetch } from '@/lib/api';
 import { getTemplate, formatCUSD } from '@/lib/constants';
 
@@ -192,6 +193,27 @@ export default function DashboardPage() {
                       );
                     })}
                   </div>
+                </div>
+              )}
+
+              {/* Self Verification per agent */}
+              {agents.length > 0 && (
+                <div className="mt-6 space-y-4">
+                  <h3 className="font-bold text-sm font-[var(--font-display)]">Agent Verification</h3>
+                  {agents.map(agent => (
+                    <div key={`verify-${agent.id}`}>
+                      <div className="text-xs text-zinc-400 mb-2 flex items-center gap-2">
+                        <span>{getTemplate(agent.templateId).icon}</span>
+                        <span className="font-semibold">{agent.name}</span>
+                        <span className="text-zinc-600 font-mono">#{agent.agentId}</span>
+                      </div>
+                      <SelfVerification
+                        agentId={agent.agentId}
+                        agentWallet={agent.agentWallet}
+                        ownerAddress={agent.ownerAddress}
+                      />
+                    </div>
+                  ))}
                 </div>
               )}
             </>
