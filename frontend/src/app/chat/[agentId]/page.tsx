@@ -41,6 +41,7 @@ export default function ChatPage() {
   const activeConvIdRef = useRef<number | null>(null);
   const selectedModelRef = useRef('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const txProcessedRef = useRef<string | null>(null); // Guard: prevent double-calling doChat
 
   // Keep refs in sync
   useEffect(() => { messagesRef.current = messages; }, [messages]);
@@ -157,9 +158,10 @@ export default function ChatPage() {
     }
   }
 
-  // When TX confirmed, retry chat with txHash
+  // When TX confirmed, retry chat with txHash — ONCE only
   useEffect(() => {
-    if (txConfirmed && txHash && pendingMessageRef.current) {
+    if (txConfirmed && txHash && pendingMessageRef.current && txProcessedRef.current !== txHash) {
+      txProcessedRef.current = txHash; // Mark as processed
       const msg = pendingMessageRef.current;
       pendingMessageRef.current = '';
       setPaymentStatus('chatting');
@@ -190,6 +192,7 @@ export default function ChatPage() {
     if (!paymentRequired || !address || !agent) return;
     if (chainId !== celo.id) { switchChain({ chainId: celo.id }); return; }
     setPaymentStatus('sending'); setLoading(true); setError('');
+    txProcessedRef.current = null; // Reset guard for new TX
     writeContract({
       address: CUSD_ADDRESS, abi: ERC20_ABI, functionName: 'transfer',
       args: [agent.agentWallet as `0x${string}`, BigInt(paymentRequired.amount)], chain: celo,
