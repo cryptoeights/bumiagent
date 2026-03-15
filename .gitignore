@@ -37,3 +37,6 @@ tmp/
 contracts/out/
 contracts/cache/
 contracts/broadcast/
+
+# Background shell state
+.bg-shell/
