@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAccount } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from 'wagmi';
+import { celo } from 'wagmi/chains';
 import { Navbar } from '@/components/Navbar';
 import { ConnectButton } from '@/components/ConnectButton';
 import { TrustBadge } from '@/components/TrustBadge';
@@ -10,6 +11,11 @@ import { SelfVerification } from '@/components/SelfVerification';
 import { AgentEditForm } from '@/components/AgentEditForm';
 import { apiFetch } from '@/lib/api';
 import { getTemplate, formatCUSD } from '@/lib/constants';
+import { CUSD_ADDRESS, ERC20_ABI } from '@/lib/contracts';
+
+// EarthPool address — premium subscription fees go here
+const EARTH_POOL_ADDRESS = '0x0000000000000000000000000000000000000000' as const; // TODO: set real pool address
+const PREMIUM_PRICE = BigInt('5000000000000000000'); // 5 cUSD
 
 interface Agent {
   id: number;
@@ -21,6 +27,7 @@ interface Agent {
   pricePerCall: string;
   ownerAddress: string;
   agentWallet: string;
+  customSystemPrompt: string;
   isActive: boolean;
   selfVerified: boolean;
   subscriptionTier: string;
@@ -40,11 +47,16 @@ interface Stats {
 }
 
 export default function DashboardPage() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
+  const { switchChain } = useSwitchChain();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [statsMap, setStatsMap] = useState<Record<number, Stats>>({});
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [upgradingId, setUpgradingId] = useState<number | null>(null);
+
+  const { writeContract, data: txHash, reset: resetTx } = useWriteContract();
+  const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({ hash: txHash });
 
   useEffect(() => {
     if (!address) {
@@ -72,6 +84,33 @@ export default function DashboardPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [address]);
+
+  // Handle premium upgrade TX confirmation
+  useEffect(() => {
+    if (txConfirmed && txHash && upgradingId && address) {
+      apiFetch(`/agents/${upgradingId}/subscribe`, {
+        method: 'POST',
+        body: JSON.stringify({ callerAddress: address, txHash }),
+      }).then(() => {
+        setAgents(prev => prev.map(a =>
+          a.agentId === upgradingId ? { ...a, subscriptionTier: 'premium' } : a
+        ));
+        setUpgradingId(null);
+        resetTx();
+      }).catch(() => { setUpgradingId(null); resetTx(); });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [txConfirmed, txHash]);
+
+  function handleUpgrade(agentId: number, agentWallet: string) {
+    if (!address) return;
+    if (chainId !== celo.id) { switchChain({ chainId: celo.id }); return; }
+    setUpgradingId(agentId);
+    writeContract({
+      address: CUSD_ADDRESS, abi: ERC20_ABI, functionName: 'transfer',
+      args: [agentWallet as `0x${string}`, PREMIUM_PRICE], chain: celo,
+    });
+  }
 
   const totalRevenue = Object.values(statsMap).reduce((sum, s) => sum + Number(s.totalRevenue || 0), 0);
   const totalCalls = Object.values(statsMap).reduce((sum, s) => sum + (s.totalCalls || 0), 0);
@@ -188,6 +227,13 @@ export default function DashboardPage() {
                                   {agent.name}
                                 </Link>
                                 <TrustBadge totalCalls={s?.totalCalls || 0} />
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                                  agent.subscriptionTier === 'premium'
+                                    ? 'bg-[var(--celo-gold)]/10 text-[var(--celo-gold)] border border-[var(--celo-gold)]/20'
+                                    : 'bg-zinc-800 text-zinc-500'
+                                }`}>
+                                  {agent.subscriptionTier === 'premium' ? '⚡ Premium' : '🌱 Free'}
+                                </span>
                               </div>
                               <div className="text-[10px] text-zinc-600 font-mono">
                                 #{agent.agentId} · {tpl.name} · {formatCUSD(agent.pricePerCall)} cUSD/call
@@ -207,6 +253,15 @@ export default function DashboardPage() {
                               )}
                             </div>
                             <div className="flex items-center gap-2">
+                              {agent.subscriptionTier !== 'premium' && (
+                                <button
+                                  onClick={() => handleUpgrade(agent.agentId, agent.agentWallet)}
+                                  disabled={upgradingId === agent.agentId}
+                                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--celo-gold)]/10 text-[var(--celo-gold)] border border-[var(--celo-gold)]/30 hover:bg-[var(--celo-gold)]/20 transition-all disabled:opacity-50"
+                                >
+                                  {upgradingId === agent.agentId ? 'Upgrading...' : '⚡ Upgrade 5 cUSD'}
+                                </button>
+                              )}
                               <button
                                 onClick={() => setEditingId(editingId === agent.agentId ? null : agent.agentId)}
                                 className="px-3 py-1.5 rounded-lg text-xs font-medium border border-zinc-700 text-zinc-300 hover:border-[var(--celo-green)]/50 hover:text-[var(--celo-green)] transition-all"

@@ -28,9 +28,9 @@ app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOStri
 app.use('/agents/:agentId/chat', x402Middleware);
 
 // Routes
+app.route('/agents', subscriptionRoutes);
 app.route('/agents', agentRoutes);
 app.route('/agents', chatRoutes);
-app.route('/agents', subscriptionRoutes);
 app.route('/templates', templateRoutes);
 app.route('/jobs', jobRoutes);
 app.route('/conversations', conversationRoutes);

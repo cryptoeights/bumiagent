@@ -9,9 +9,10 @@ interface Props {
     name: string;
     description: string;
     logoUrl: string;
+    customSystemPrompt: string;
     ownerAddress: string;
   };
-  onSaved: (updated: { name: string; description: string; logoUrl: string }) => void;
+  onSaved: (updated: { name: string; description: string; logoUrl: string; customSystemPrompt: string }) => void;
   onCancel: () => void;
 }
 
@@ -19,6 +20,7 @@ export function AgentEditForm({ agent, onSaved, onCancel }: Props) {
   const [name, setName] = useState(agent.name);
   const [description, setDescription] = useState(agent.description || '');
   const [logoUrl, setLogoUrl] = useState(agent.logoUrl || '');
+  const [skillMd, setSkillMd] = useState(agent.customSystemPrompt || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -34,10 +36,11 @@ export function AgentEditForm({ agent, onSaved, onCancel }: Props) {
           name: name.trim(),
           description: description.trim(),
           logoUrl: logoUrl.trim(),
+          customSystemPrompt: skillMd.trim(),
           ownerAddress: agent.ownerAddress,
         }),
       });
-      onSaved({ name: name.trim(), description: description.trim(), logoUrl: logoUrl.trim() });
+      onSaved({ name: name.trim(), description: description.trim(), logoUrl: logoUrl.trim(), customSystemPrompt: skillMd.trim() });
     } catch (err: any) {
       setError(err.error || 'Failed to save');
     } finally {
@@ -97,6 +100,20 @@ export function AgentEditForm({ agent, onSaved, onCancel }: Props) {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Skill.md */}
+      <div>
+        <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Agent Skills (skill.md)</label>
+        <textarea
+          value={skillMd}
+          onChange={e => setSkillMd(e.target.value)}
+          maxLength={10000}
+          rows={6}
+          placeholder="# Capabilities&#10;- Analyze DeFi protocols&#10;&#10;# Rules&#10;- Always mention risks"
+          className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs font-mono focus:outline-none focus:border-[var(--celo-green)]/50 resize-y leading-relaxed"
+        />
+        <p className="text-[10px] text-zinc-600 mt-0.5">{skillMd.length}/10,000 · Appended to template prompt</p>
       </div>
 
       {error && <p className="text-xs text-red-400">{error}</p>}

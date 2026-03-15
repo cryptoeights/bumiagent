@@ -21,6 +21,7 @@ export default function DeployPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [skillMd, setSkillMd] = useState('');
   const [templateId, setTemplateId] = useState(0);
   const [pricePerCall, setPricePerCall] = useState('50000000000000000');
   const [loading, setLoading] = useState(false);
@@ -48,6 +49,7 @@ export default function DeployPage() {
           name: name.trim(),
           description: description.trim(),
           logoUrl: logoUrl.trim(),
+          customSystemPrompt: skillMd.trim() || undefined,
           templateId,
           pricePerCall,
           ownerAddress: address,
@@ -129,7 +131,7 @@ export default function DeployPage() {
                   Chat with Agent →
                 </button>
                 <button
-                  onClick={() => { setSuccess(null); setName(''); setDescription(''); setLogoUrl(''); }}
+                  onClick={() => { setSuccess(null); setName(''); setDescription(''); setLogoUrl(''); setSkillMd(''); }}
                   className="px-6 py-2.5 rounded-lg border border-zinc-700 text-zinc-300 text-sm hover:bg-zinc-800/50 transition-all"
                 >
                   Deploy Another
@@ -190,6 +192,28 @@ export default function DeployPage() {
                   )}
                 </div>
                 <p className="text-[10px] text-zinc-600 mt-1">Direct link to an image (PNG, JPG, SVG)</p>
+              </div>
+
+              {/* Skill.md */}
+              <div>
+                <label className="block text-sm font-semibold mb-2">
+                  Agent Skills <span className="text-zinc-600 font-normal">(optional — skill.md)</span>
+                </label>
+                <p className="text-xs text-zinc-500 mb-2">
+                  Add specialized knowledge, rules, and capabilities. This is appended to the template prompt to make your agent unique.
+                </p>
+                <textarea
+                  value={skillMd}
+                  onChange={e => setSkillMd(e.target.value)}
+                  placeholder={`# My Agent Skills\n\n## Capabilities\n- Analyze Celo DeFi protocols\n- Calculate APY comparisons\n\n## Rules\n- Always mention risks\n- Use tables for comparisons\n\n## Knowledge\n- Ubeswap: AMM DEX, dual farming\n- Moola: Lending/borrowing platform`}
+                  maxLength={10000}
+                  rows={8}
+                  className="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-[var(--celo-green)]/50 focus:ring-1 focus:ring-[var(--celo-green)]/20 transition-all text-sm resize-y font-mono text-xs leading-relaxed"
+                />
+                <div className="flex justify-between mt-1">
+                  <p className="text-[10px] text-zinc-600">Markdown supported. Appended to template system prompt.</p>
+                  <p className="text-[10px] text-zinc-600">{skillMd.length}/10,000</p>
+                </div>
               </div>
 
               {/* Template */}
@@ -261,18 +285,19 @@ export default function DeployPage() {
                 </div>
 
                 {/* Premium Tier */}
-                <div className="p-4 rounded-xl border border-zinc-800/50 bg-zinc-900/30 opacity-70">
+                <div className="p-4 rounded-xl border border-[var(--celo-gold)]/30 bg-[var(--celo-gold)]/5">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-sm text-[var(--celo-gold)]">⚡ Premium Tier</span>
-                    <span className="text-xs text-[var(--celo-gold)]">Coming Soon</span>
+                    <span className="text-xs text-[var(--celo-gold)] font-semibold">5 cUSD one-time</span>
                   </div>
-                  <ul className="text-xs text-zinc-500 space-y-1.5">
+                  <ul className="text-xs text-zinc-400 space-y-1.5">
                     <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> Everything in Free</li>
                     <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> Keep 100% of all revenue</li>
                     <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> Premium models: revenue stays with you</li>
                     <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> 0% EarthPool contribution</li>
-                    <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> Priority support &amp; analytics</li>
+                    <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> Priority in registry listings</li>
                   </ul>
+                  <p className="text-[10px] text-[var(--celo-gold)]/60 mt-2">Upgrade anytime from your Dashboard after deploying</p>
                 </div>
 
                 <p className="text-[10px] text-zinc-600 text-center">

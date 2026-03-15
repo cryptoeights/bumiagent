@@ -107,7 +107,10 @@ chatRoutes.post('/:agentId/chat', async (c) => {
 
   // Build messages with template system prompt
   const template = getTemplate(agent.templateId);
-  const systemPrompt = agent.customSystemPrompt || template?.systemPrompt || 'You are a helpful AI assistant.';
+  const basePrompt = template?.systemPrompt || 'You are a helpful AI assistant.';
+  const systemPrompt = agent.customSystemPrompt
+    ? `${basePrompt}\n\n---\n\n## Agent Skills\n\n${agent.customSystemPrompt}`
+    : basePrompt;
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },

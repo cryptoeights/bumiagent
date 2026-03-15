@@ -16,7 +16,7 @@ const createAgentSchema = z.object({
   templateId: z.number().int().min(0).max(9),
   pricePerCall: z.string().regex(/^\d+$/, 'Must be a numeric string (wei)'),
   ownerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
-  customSystemPrompt: z.string().max(5000).optional(),
+  customSystemPrompt: z.string().max(10000).optional(),
 });
 
 // ─── POST /agents — Register new agent ──────────────────
@@ -108,6 +108,7 @@ const updateAgentSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
   logoUrl: z.string().url().max(500).optional().or(z.literal('')),
+  customSystemPrompt: z.string().max(10000).optional(),
   ownerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
 });
 
@@ -133,13 +134,14 @@ agentRoutes.patch('/:agentId', async (c) => {
   if (parsed.data.name !== undefined) updates.name = parsed.data.name;
   if (parsed.data.description !== undefined) updates.description = parsed.data.description;
   if (parsed.data.logoUrl !== undefined) updates.logoUrl = parsed.data.logoUrl;
+  if (parsed.data.customSystemPrompt !== undefined) updates.customSystemPrompt = parsed.data.customSystemPrompt;
 
   const [updated] = await db.update(agents)
     .set(updates)
     .where(eq(agents.agentId, agentId))
     .returning();
 
-  return c.json({ agent: { agentId: updated.agentId, name: updated.name, description: updated.description, logoUrl: updated.logoUrl } });
+  return c.json({ agent: { agentId: updated.agentId, name: updated.name, description: updated.description, logoUrl: updated.logoUrl, customSystemPrompt: updated.customSystemPrompt } });
 });
 
 // ─── GET /agents/:agentId — Agent detail ────────────────
@@ -155,6 +157,7 @@ agentRoutes.get('/:agentId', async (c) => {
     description: agents.description,
     logoUrl: agents.logoUrl,
     templateId: agents.templateId,
+    customSystemPrompt: agents.customSystemPrompt,
     pricePerCall: agents.pricePerCall,
     ownerAddress: agents.ownerAddress,
     agentWallet: agents.agentWallet,
