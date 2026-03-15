@@ -146,14 +146,14 @@ export function SelfVerification({ agentId, agentWallet, ownerAddress }: Props) 
             <p className="text-xs text-zinc-300"><span className="text-[var(--celo-green)] font-semibold">3.</span> Follow the passport verification flow</p>
           </div>
 
-          {/* QR Code */}
+          {/* QR Code — encode the deepLink URL */}
           <div className="flex justify-center">
             <div className="p-4 bg-white rounded-xl">
               <QRCodeSVG
-                value={JSON.stringify(qrData)}
-                size={200}
-                level="M"
-                includeMargin={false}
+                value={deepLink}
+                size={220}
+                level="L"
+                includeMargin
               />
             </div>
           </div>
