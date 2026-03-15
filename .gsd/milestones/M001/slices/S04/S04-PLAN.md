@@ -15,6 +15,6 @@
 
 ## Tasks
 
-- [ ] **T01: Next.js project + wallet connect + layout** `est:25m`
-- [ ] **T02: Landing page** `est:20m`
-- [ ] **T03: Deploy form + chat interface** `est:30m`
+- [x] **T01: Next.js project + wallet connect + layout** `est:25m`
+- [x] **T02: Landing page** `est:20m`
+- [x] **T03: Deploy form + chat interface** `est:30m`
