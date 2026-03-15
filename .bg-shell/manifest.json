@@ -12,15 +12,15 @@
     "pid": 63847
   },
   {
-    "id": "efb7e5b4",
+    "id": "06b1ffd1",
     "label": "backend",
     "command": "cd /Users/pebriansyah/Desktop/celospawnag/backend && npx tsx src/index.ts",
     "cwd": "/Users/pebriansyah/Desktop/celospawnag",
-    "startedAt": 1773538625359,
+    "startedAt": 1773539000415,
     "processType": "server",
     "group": "celospawn",
     "readyPattern": null,
     "readyPort": 3001,
-    "pid": 83651
+    "pid": 89536
   }
 ]

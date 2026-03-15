@@ -85,12 +85,17 @@ jobRoutes.post('/', async (c) => {
   }, 201);
 });
 
+const fundSchema = z.object({
+  callerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+  txHash: z.string().regex(/^0x[a-fA-F0-9]{64}$/).optional(),
+});
+
 // ─── POST /jobs/:jobId/fund ─────────────────────────────
 
 jobRoutes.post('/:jobId/fund', async (c) => {
   const jobId = Number(c.req.param('jobId'));
   const body = await c.req.json().catch(() => null);
-  const parsed = addressSchema.safeParse(body);
+  const parsed = fundSchema.safeParse(body);
   if (!parsed.success) return c.json({ error: 'callerAddress required' }, 400);
 
   const job = await getJob(jobId);
@@ -104,7 +109,11 @@ jobRoutes.post('/:jobId/fund', async (c) => {
   if (transitionError) return c.json({ error: transitionError }, 400);
 
   await db.update(jobs)
-    .set({ status: 'funded', fundedAt: new Date() })
+    .set({
+      status: 'funded',
+      fundedAt: new Date(),
+      fundTxHash: parsed.data.txHash || null,
+    })
     .where(eq(jobs.jobId, jobId));
 
   // Auto-process: agent generates deliverable in background
@@ -149,10 +158,15 @@ jobRoutes.post('/:jobId/submit', async (c) => {
 
 // ─── POST /jobs/:jobId/complete ─────────────────────────
 
+const completeSchema = z.object({
+  callerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+  txHash: z.string().regex(/^0x[a-fA-F0-9]{64}$/).optional(),
+});
+
 jobRoutes.post('/:jobId/complete', async (c) => {
   const jobId = Number(c.req.param('jobId'));
   const body = await c.req.json().catch(() => null);
-  const parsed = addressSchema.safeParse(body);
+  const parsed = completeSchema.safeParse(body);
   if (!parsed.success) return c.json({ error: 'callerAddress required' }, 400);
 
   const job = await getJob(jobId);
@@ -167,7 +181,11 @@ jobRoutes.post('/:jobId/complete', async (c) => {
   if (transitionError) return c.json({ error: transitionError }, 400);
 
   await db.update(jobs)
-    .set({ status: 'completed', completedAt: new Date() })
+    .set({
+      status: 'completed',
+      completedAt: new Date(),
+      payoutTxHash: parsed.data.txHash || job.fundTxHash || null,
+    })
     .where(eq(jobs.jobId, jobId));
 
   // Calculate fees (for display — actual on-chain settlement is in the contract)

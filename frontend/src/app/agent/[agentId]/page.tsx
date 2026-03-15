@@ -43,11 +43,15 @@ interface Job {
   clientAddress: string;
   resultText: string | null;
   deliverableIpfsCid: string | null;
+  fundTxHash: string | null;
+  payoutTxHash: string | null;
   createdAt: string;
   fundedAt: string | null;
   submittedAt: string | null;
   completedAt: string | null;
 }
+
+const CELOSCAN = 'https://celoscan.io/tx/';
 
 export default function AgentScanPage() {
   const params = useParams();
@@ -111,7 +115,7 @@ export default function AgentScanPage() {
     if (txConfirmed && txHash && pendingFundJob && address) {
       apiFetch(`/jobs/${pendingFundJob.jobId}/fund`, {
         method: 'POST',
-        body: JSON.stringify({ callerAddress: address }),
+        body: JSON.stringify({ callerAddress: address, txHash }),
       }).then(() => {
         setJobSuccess(`Job #${pendingFundJob.jobId} funded!`);
         setPendingFundJob(null);
@@ -533,6 +537,12 @@ export default function AgentScanPage() {
                               <div>
                                 <span className="text-zinc-600">Funded:</span>{' '}
                                 <span className="text-zinc-400">{new Date(job.fundedAt).toLocaleString()}</span>
+                                {job.fundTxHash && (
+                                  <a href={`${CELOSCAN}${job.fundTxHash}`} target="_blank" rel="noopener noreferrer"
+                                    className="ml-2 text-[10px] text-[var(--celo-green)] hover:underline">
+                                    View TX ↗
+                                  </a>
+                                )}
                               </div>
                             )}
                             {job.submittedAt && (
@@ -545,9 +555,33 @@ export default function AgentScanPage() {
                               <div>
                                 <span className="text-zinc-600">Completed:</span>{' '}
                                 <span className="text-zinc-400">{new Date(job.completedAt).toLocaleString()}</span>
+                                {job.payoutTxHash && (
+                                  <a href={`${CELOSCAN}${job.payoutTxHash}`} target="_blank" rel="noopener noreferrer"
+                                    className="ml-2 text-[10px] text-[var(--celo-green)] hover:underline">
+                                    View Payout TX ↗
+                                  </a>
+                                )}
                               </div>
                             )}
                           </div>
+
+                          {/* TX Links */}
+                          {(job.fundTxHash || job.payoutTxHash) && (
+                            <div className="mb-3 flex flex-wrap gap-2">
+                              {job.fundTxHash && (
+                                <a href={`${CELOSCAN}${job.fundTxHash}`} target="_blank" rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 hover:bg-yellow-500/20 transition-all">
+                                  💰 Fund TX · {job.fundTxHash.slice(0, 10)}...{job.fundTxHash.slice(-6)} ↗
+                                </a>
+                              )}
+                              {job.payoutTxHash && (
+                                <a href={`${CELOSCAN}${job.payoutTxHash}`} target="_blank" rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 transition-all">
+                                  ✅ Payout TX · {job.payoutTxHash.slice(0, 10)}...{job.payoutTxHash.slice(-6)} ↗
+                                </a>
+                              )}
+                            </div>
+                          )}
 
                           {/* Full description */}
                           <div className="mb-3">

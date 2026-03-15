@@ -48,6 +48,8 @@ export const jobs = pgTable('jobs', {
   status: varchar('status', { length: 20 }).notNull(),
   deliverableIpfsCid: varchar('deliverable_ipfs_cid', { length: 100 }),
   resultText: text('result_text'),
+  fundTxHash: varchar('fund_tx_hash', { length: 66 }),
+  payoutTxHash: varchar('payout_tx_hash', { length: 66 }),
   createdAt: timestamp('created_at').defaultNow(),
   fundedAt: timestamp('funded_at'),
   submittedAt: timestamp('submitted_at'),
