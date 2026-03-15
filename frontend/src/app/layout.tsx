@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "CeloSpawn — Launch AI Agents on Celo in 10 Seconds",
+  title: "Bumi Agent — Launch AI Agents on Celo in 10 Seconds",
   description: "No-code platform to launch, monetize, and manage AI agents on Celo blockchain. Deploy in 10 seconds with just 3 fields.",
 };
 

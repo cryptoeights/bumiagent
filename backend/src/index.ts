@@ -37,7 +37,7 @@ app.route('/conversations', conversationRoutes);
 app.route('/self', selfRoutes);
 
 // Start
-console.log(`🚀 CeloSpawn API starting on port ${env.PORT}`);
+console.log(`🚀 Bumi Agent API starting on port ${env.PORT}`);
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   console.log(`✅ Server running at http://localhost:${info.port}`);
 });

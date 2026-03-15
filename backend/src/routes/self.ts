@@ -92,7 +92,7 @@ selfRoutes.get('/status', async (c) => {
   }
 });
 
-// ─── GET /self/verify/:agentId — Check if CeloSpawn agent is Self verified ──
+// ─── GET /self/verify/:agentId — Check if Bumi Agent is Self verified ──
 
 selfRoutes.get('/verify/:agentId', async (c) => {
   const agentId = parseInt(c.req.param('agentId'), 10);

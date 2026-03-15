@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Globe circle -->
+  <circle cx="16" cy="16" r="14" fill="#35D07F" opacity="0.15" stroke="#35D07F" stroke-width="1.5"/>
+  <!-- Landmass shapes (stylized) -->
+  <path d="M12 8c2-1 5 0 6 2s0 4-2 5-4 1-5-1 0-5 1-6z" fill="#35D07F" opacity="0.6"/>
+  <path d="M9 16c1-2 3-2 5-1s2 3 1 5-4 2-5 0-1-3-1-4z" fill="#35D07F" opacity="0.5"/>
+  <path d="M18 18c1-1 3-1 4 0s1 3 0 4-3 1-4 0 0-3 0-4z" fill="#35D07F" opacity="0.45"/>
+  <!-- Latitude lines -->
+  <ellipse cx="16" cy="11" rx="11" ry="3" stroke="#35D07F" stroke-width="0.5" opacity="0.25" fill="none"/>
+  <ellipse cx="16" cy="21" rx="11" ry="3" stroke="#35D07F" stroke-width="0.5" opacity="0.25" fill="none"/>
+  <!-- Meridian -->
+  <ellipse cx="16" cy="16" rx="5" ry="14" stroke="#35D07F" stroke-width="0.5" opacity="0.25" fill="none"/>
+  <!-- Leaf sprout (top right) -->
+  <path d="M22 6c2-2 5-2 6 0s-1 4-3 4c0 0 0-2-1-3s-2-1-2-1z" fill="#35D07F"/>
+  <path d="M24.5 6.5c0 0 0.5 1.5-0.5 3" stroke="#1a1a1a" stroke-width="0.6" stroke-linecap="round" fill="none"/>
+</svg>

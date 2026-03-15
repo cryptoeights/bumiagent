@@ -1,4 +1,4 @@
-// Auto-extracted contract ABIs and deployment config for CeloSpawn
+// Auto-extracted contract ABIs and deployment config for Bumi Agent
 // Generated from Foundry build artifacts
 
 export const CONTRACTS = {

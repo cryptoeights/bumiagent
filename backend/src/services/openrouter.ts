@@ -102,8 +102,8 @@ export async function chatCompletion(
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'https://celospawn.xyz',
-          'X-Title': 'CeloSpawn Agent',
+          'HTTP-Referer': 'https://bumiagent.xyz',
+          'X-Title': 'Bumi Agent',
         },
         body: JSON.stringify({
           model,

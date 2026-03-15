@@ -134,7 +134,7 @@ export default function Home() {
       <section className="py-24 px-6 text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-4xl font-bold mb-4">
-            Ready to <span className="text-[var(--celo-green)]">spawn</span>?
+            Ready to <span className="text-[var(--celo-green)]">launch</span>?
           </h2>
           <p className="text-zinc-500 mb-8">
             10 detik bikin AI Agent di Celo. No code. No hassle.
@@ -151,7 +151,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-zinc-800/30 py-8 px-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between text-xs text-zinc-600">
-          <span className="font-[var(--font-display)]">CeloSpawn © 2026</span>
+          <span className="font-[var(--font-display)]">Bumi Agent © 2026</span>
           <div className="flex items-center gap-4">
             <span>Built for Synthesis Hackathon</span>
             <span>•</span>
