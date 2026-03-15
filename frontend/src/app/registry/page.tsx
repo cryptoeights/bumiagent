@@ -158,11 +158,14 @@ export default function RegistryPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <TrustBadge totalCalls={stats?.totalCalls || 0} />
-                        {agent.selfVerified && (
+                        {!agent.selfVerified && <TrustBadge totalCalls={stats?.totalCalls || 0} />}
+                        {agent.selfVerified ? (
                           <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-[var(--celo-green)]/10 text-[var(--celo-green)] border border-[var(--celo-green)]/20">
-                            ✅ Self
+                            ✅ Self Verified
                           </span>
+                        ) : null}
+                        {agent.selfVerified && (stats?.totalCalls || 0) >= 5 && (
+                          <TrustBadge totalCalls={stats?.totalCalls || 0} />
                         )}
                       </div>
                     </div>

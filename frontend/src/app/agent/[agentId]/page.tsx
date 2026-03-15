@@ -283,11 +283,14 @@ export default function AgentScanPage() {
                   <span className="px-2 py-0.5 rounded text-zinc-400" style={{ backgroundColor: tpl.color + '15', color: tpl.color }}>
                     {tpl.name}
                   </span>
-                  <TrustBadge totalCalls={stats?.totalCalls || 0} size="md" />
+                  {!agent.selfVerified && <TrustBadge totalCalls={stats?.totalCalls || 0} size="md" />}
                   {agent.selfVerified && (
                     <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[var(--celo-green)]/10 text-[var(--celo-green)] border border-[var(--celo-green)]/20">
                       ✅ Self Verified
                     </span>
+                  )}
+                  {agent.selfVerified && (stats?.totalCalls || 0) >= 5 && (
+                    <TrustBadge totalCalls={stats?.totalCalls || 0} size="md" />
                   )}
                   {agent.subscriptionTier === 'premium' && (
                     <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[var(--celo-gold)]/10 text-[var(--celo-gold)] border border-[var(--celo-gold)]/20">
