@@ -90,6 +90,7 @@ agentRoutes.get('/', async (c) => {
     agentWallet: agents.agentWallet,
     isActive: agents.isActive,
     selfVerified: agents.selfVerified,
+    subscriptionTier: agents.subscriptionTier,
     createdAt: agents.createdAt,
   })
   .from(agents)
@@ -159,6 +160,7 @@ agentRoutes.get('/:agentId', async (c) => {
     agentWallet: agents.agentWallet,
     isActive: agents.isActive,
     selfVerified: agents.selfVerified,
+    subscriptionTier: agents.subscriptionTier,
     createdAt: agents.createdAt,
     updatedAt: agents.updatedAt,
   })
@@ -184,12 +186,16 @@ agentRoutes.get('/:agentId/stats', async (c) => {
 
   if (!agent) return c.json({ error: 'Agent not found' }, 404);
 
-  // Aggregate call stats
+  // Aggregate call stats with tier breakdown
   const [stats] = await db.select({
     totalCalls: sql<number>`count(*)::int`,
     totalRevenue: sql<string>`coalesce(sum(${callLogs.revenue}), 0)::text`,
+    totalEarthPool: sql<string>`coalesce(sum(${callLogs.earthPoolShare}), 0)::text`,
+    totalOwnerShare: sql<string>`coalesce(sum(${callLogs.ownerShare}), 0)::text`,
     ownerCalls: sql<number>`count(*) filter (where ${callLogs.isOwnerCall} = true)::int`,
     paidCalls: sql<number>`count(*) filter (where ${callLogs.isOwnerCall} = false)::int`,
+    freeModelCalls: sql<number>`count(*) filter (where ${callLogs.modelTier} = 'free' or ${callLogs.modelTier} is null)::int`,
+    premiumModelCalls: sql<number>`count(*) filter (where ${callLogs.modelTier} = 'premium')::int`,
   })
   .from(callLogs)
   .where(eq(callLogs.agentId, agentId));
@@ -197,10 +203,15 @@ agentRoutes.get('/:agentId/stats', async (c) => {
   return c.json({
     agentId,
     name: agent.name,
+    subscriptionTier: agent.subscriptionTier || 'free',
     totalCalls: stats?.totalCalls || 0,
     totalRevenue: stats?.totalRevenue || '0',
+    totalEarthPool: stats?.totalEarthPool || '0',
+    totalOwnerShare: stats?.totalOwnerShare || '0',
     ownerCalls: stats?.ownerCalls || 0,
     paidCalls: stats?.paidCalls || 0,
+    freeModelCalls: stats?.freeModelCalls || 0,
+    premiumModelCalls: stats?.premiumModelCalls || 0,
     createdAt: agent.createdAt,
   });
 });

@@ -127,14 +127,43 @@ chatRoutes.post('/:agentId/chat', async (c) => {
       ? selectedModel!.costPerCall
       : (paymentInfo?.revenue || '0');
 
+    // EarthPool split logic:
+    // - Free tier owner: 15% of agent revenue to EarthPool
+    // - Free tier owner + Sonnet: 100% of Sonnet cost to EarthPool
+    // - Premium tier owner: 0% to EarthPool (owner keeps all)
+    const ownerTier = agent.subscriptionTier || 'free';
+    const revenueBigInt = BigInt(revenue);
+    let earthPoolShare = 0n;
+    let ownerShare = 0n;
+
+    if (ownerTier === 'premium') {
+      // Premium subscription: owner keeps 100%
+      earthPoolShare = 0n;
+      ownerShare = revenueBigInt;
+    } else {
+      // Free tier
+      if (isPremiumModel) {
+        // Sonnet on free tier: 100% to EarthPool
+        earthPoolShare = revenueBigInt;
+        ownerShare = 0n;
+      } else {
+        // Free model on free tier: 15% to EarthPool, 85% to owner
+        earthPoolShare = (revenueBigInt * 15n) / 100n;
+        ownerShare = revenueBigInt - earthPoolShare;
+      }
+    }
+
     await db.insert(callLogs).values({
       agentId,
       callerAddress: callerAddress?.toLowerCase() ?? null,
       messageHash,
       responseHash,
       revenue,
+      earthPoolShare: earthPoolShare.toString(),
+      ownerShare: ownerShare.toString(),
       llmModel: response.model,
       llmTokensUsed: response.tokensUsed,
+      modelTier: isPremiumModel ? 'premium' : 'free',
       isOwnerCall: isOwnerCall && !isPremiumModel,
       paymentTxHash: paymentInfo?.txHash || c.req.header('x-payment-txhash') || null,
     });

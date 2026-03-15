@@ -23,14 +23,20 @@ interface Agent {
   agentWallet: string;
   isActive: boolean;
   selfVerified: boolean;
+  subscriptionTier: string;
   createdAt: string;
 }
 
 interface Stats {
   totalCalls: number;
   totalRevenue: string;
+  totalEarthPool: string;
+  totalOwnerShare: string;
   ownerCalls: number;
   paidCalls: number;
+  freeModelCalls: number;
+  premiumModelCalls: number;
+  subscriptionTier: string;
 }
 
 export default function DashboardPage() {
@@ -69,7 +75,8 @@ export default function DashboardPage() {
 
   const totalRevenue = Object.values(statsMap).reduce((sum, s) => sum + Number(s.totalRevenue || 0), 0);
   const totalCalls = Object.values(statsMap).reduce((sum, s) => sum + (s.totalCalls || 0), 0);
-  const totalPaidCalls = Object.values(statsMap).reduce((sum, s) => sum + (s.paidCalls || 0), 0);
+  const totalEarthPool = Object.values(statsMap).reduce((sum, s) => sum + Number(s.totalEarthPool || 0), 0);
+  const totalOwnerEarned = Object.values(statsMap).reduce((sum, s) => sum + Number(s.totalOwnerShare || 0), 0);
 
   return (
     <div className="noise-bg grid-bg min-h-screen">
@@ -112,13 +119,15 @@ export default function DashboardPage() {
                   <div className="text-2xl font-bold font-[var(--font-display)] text-[var(--celo-green)]">
                     {agents.length}
                   </div>
+                  <div className="text-[10px] text-zinc-600 mt-1">{agents[0]?.subscriptionTier === 'premium' ? '⚡ Premium' : '🌱 Free'} tier</div>
                 </div>
                 <div className="p-5 rounded-xl border border-zinc-800/50 bg-zinc-900/30">
-                  <div className="text-xs text-zinc-500 mb-1">Revenue</div>
+                  <div className="text-xs text-zinc-500 mb-1">Your Earnings</div>
                   <div className="text-2xl font-bold font-[var(--font-display)] text-[var(--celo-gold)]">
-                    {formatCUSD(totalRevenue.toString())}
+                    {formatCUSD(totalOwnerEarned.toString())}
                     <span className="text-xs text-zinc-500 ml-1">cUSD</span>
                   </div>
+                  <div className="text-[10px] text-zinc-600 mt-1">of {formatCUSD(totalRevenue.toString())} total</div>
                 </div>
                 <div className="p-5 rounded-xl border border-zinc-800/50 bg-zinc-900/30">
                   <div className="text-xs text-zinc-500 mb-1">Total Calls</div>
@@ -127,10 +136,12 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="p-5 rounded-xl border border-zinc-800/50 bg-zinc-900/30">
-                  <div className="text-xs text-zinc-500 mb-1">Paid Calls</div>
-                  <div className="text-2xl font-bold font-[var(--font-display)] text-orange-400">
-                    {totalPaidCalls}
+                  <div className="text-xs text-zinc-500 mb-1">🌍 EarthPool</div>
+                  <div className="text-2xl font-bold font-[var(--font-display)] text-emerald-400">
+                    {formatCUSD(totalEarthPool.toString())}
+                    <span className="text-xs text-zinc-500 ml-1">cUSD</span>
                   </div>
+                  <div className="text-[10px] text-zinc-600 mt-1">Climate contribution</div>
                 </div>
               </div>
 
@@ -190,7 +201,10 @@ export default function DashboardPage() {
                           <div className="flex items-center gap-4 shrink-0">
                             <div className="text-right hidden md:block">
                               <div className="text-xs text-zinc-400">{s?.totalCalls || 0} calls</div>
-                              <div className="text-[10px] text-zinc-600 font-mono">{formatCUSD(s?.totalRevenue || '0')} cUSD earned</div>
+                              <div className="text-[10px] text-zinc-600 font-mono">{formatCUSD(s?.totalOwnerShare || '0')} cUSD earned</div>
+                              {Number(s?.totalEarthPool || 0) > 0 && (
+                                <div className="text-[10px] text-emerald-600 font-mono">🌍 {formatCUSD(s?.totalEarthPool || '0')} to EarthPool</div>
+                              )}
                             </div>
                             <div className="flex items-center gap-2">
                               <button

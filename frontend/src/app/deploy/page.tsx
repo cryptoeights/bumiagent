@@ -241,6 +241,45 @@ export default function DeployPage() {
                 </div>
               </div>
 
+              {/* Tier Info */}
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold">Subscription Tier</label>
+
+                {/* Free Tier */}
+                <div className="p-4 rounded-xl border-2 border-[var(--celo-green)] bg-[var(--celo-green)]/5 relative">
+                  <div className="absolute -top-2.5 left-3 px-2 bg-zinc-950 text-[10px] text-[var(--celo-green)] font-semibold">DEFAULT</div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-sm text-[var(--celo-green)]">🌱 Free Tier</span>
+                    <span className="text-xs text-zinc-400">0 cUSD/mo</span>
+                  </div>
+                  <ul className="text-xs text-zinc-400 space-y-1.5">
+                    <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> Unlimited free model calls (Step Flash, Gemma)</li>
+                    <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> Earn 85% of user payments</li>
+                    <li className="flex items-start gap-2"><span className="text-[var(--celo-gold)]">→</span> 15% of revenue goes to EarthPool 🌍</li>
+                    <li className="flex items-start gap-2"><span className="text-red-400">✗</span> Premium models (Sonnet): 100% cost to EarthPool</li>
+                  </ul>
+                </div>
+
+                {/* Premium Tier */}
+                <div className="p-4 rounded-xl border border-zinc-800/50 bg-zinc-900/30 opacity-70">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-sm text-[var(--celo-gold)]">⚡ Premium Tier</span>
+                    <span className="text-xs text-[var(--celo-gold)]">Coming Soon</span>
+                  </div>
+                  <ul className="text-xs text-zinc-500 space-y-1.5">
+                    <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> Everything in Free</li>
+                    <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> Keep 100% of all revenue</li>
+                    <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> Premium models: revenue stays with you</li>
+                    <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> 0% EarthPool contribution</li>
+                    <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> Priority support &amp; analytics</li>
+                  </ul>
+                </div>
+
+                <p className="text-[10px] text-zinc-600 text-center">
+                  All agents start on Free tier. EarthPool funds climate initiatives on Celo 🌍
+                </p>
+              </div>
+
               {error && (
                 <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
                   {error}
