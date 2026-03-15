@@ -11,6 +11,8 @@ interface Agent {
   id: number;
   agentId: number;
   name: string;
+  description: string;
+  logoUrl: string;
   templateId: number;
   pricePerCall: string;
   ownerAddress: string;
@@ -135,9 +137,17 @@ export default function RegistryPage() {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-start gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-xl shrink-0">
-                          {tpl.icon}
-                        </div>
+                        {agent.logoUrl ? (
+                          <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-zinc-800">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={agent.logoUrl} alt={agent.name} className="w-full h-full object-cover"
+                              onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-xl shrink-0">
+                            {tpl.icon}
+                          </div>
+                        )}
                         <div className="min-w-0">
                           <h3 className="font-bold text-sm truncate group-hover:text-[var(--celo-green)] transition-colors">
                             {agent.name}
@@ -147,13 +157,19 @@ export default function RegistryPage() {
                           </span>
                         </div>
                       </div>
-                      <TrustBadge totalCalls={stats?.totalCalls || 0} />
-                      {agent.selfVerified && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-[var(--celo-green)]/10 text-[var(--celo-green)] border border-[var(--celo-green)]/20">
-                          ✅ Self Verified
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <TrustBadge totalCalls={stats?.totalCalls || 0} />
+                        {agent.selfVerified && (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-[var(--celo-green)]/10 text-[var(--celo-green)] border border-[var(--celo-green)]/20">
+                            ✅ Self
+                          </span>
+                        )}
+                      </div>
                     </div>
+
+                    {agent.description && (
+                      <p className="text-xs text-zinc-500 mb-3 line-clamp-2">{agent.description}</p>
+                    )}
 
                     <div className="flex items-center justify-between text-xs mb-3">
                       <span className="text-zinc-400 font-mono">{formatCUSD(agent.pricePerCall)} cUSD/call</span>

@@ -7,6 +7,7 @@ import { Navbar } from '@/components/Navbar';
 import { ConnectButton } from '@/components/ConnectButton';
 import { TrustBadge } from '@/components/TrustBadge';
 import { SelfVerification } from '@/components/SelfVerification';
+import { AgentEditForm } from '@/components/AgentEditForm';
 import { apiFetch } from '@/lib/api';
 import { getTemplate, formatCUSD } from '@/lib/constants';
 
@@ -14,6 +15,8 @@ interface Agent {
   id: number;
   agentId: number;
   name: string;
+  description: string;
+  logoUrl: string;
   templateId: number;
   pricePerCall: string;
   ownerAddress: string;
@@ -35,6 +38,7 @@ export default function DashboardPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [statsMap, setStatsMap] = useState<Record<number, Stats>>({});
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!address) {
@@ -152,12 +156,21 @@ export default function DashboardPage() {
                         <div key={agent.id} className="px-5 py-4 space-y-3 hover:bg-zinc-800/10 transition-colors">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div 
-                              className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0"
-                              style={{ backgroundColor: tpl.color + '15' }}
-                            >
-                              {tpl.icon}
-                            </div>
+                            {/* Logo or template icon */}
+                            {agent.logoUrl ? (
+                              <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-zinc-800">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={agent.logoUrl} alt={agent.name} className="w-full h-full object-cover"
+                                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                              </div>
+                            ) : (
+                              <div
+                                className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0"
+                                style={{ backgroundColor: tpl.color + '15' }}
+                              >
+                                {tpl.icon}
+                              </div>
+                            )}
                             <div className="min-w-0">
                               <div className="flex items-center gap-2">
                                 <Link href={`/agent/${agent.agentId}`} className="font-semibold text-sm hover:text-[var(--celo-green)] transition-colors truncate">
@@ -168,6 +181,9 @@ export default function DashboardPage() {
                               <div className="text-[10px] text-zinc-600 font-mono">
                                 #{agent.agentId} · {tpl.name} · {formatCUSD(agent.pricePerCall)} cUSD/call
                               </div>
+                              {agent.description && (
+                                <p className="text-[10px] text-zinc-500 mt-0.5 truncate max-w-xs">{agent.description}</p>
+                              )}
                             </div>
                           </div>
 
@@ -177,6 +193,12 @@ export default function DashboardPage() {
                               <div className="text-[10px] text-zinc-600 font-mono">{formatCUSD(s?.totalRevenue || '0')} cUSD earned</div>
                             </div>
                             <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setEditingId(editingId === agent.agentId ? null : agent.agentId)}
+                                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-zinc-700 text-zinc-300 hover:border-[var(--celo-green)]/50 hover:text-[var(--celo-green)] transition-all"
+                              >
+                                Edit
+                              </button>
                               <Link
                                 href={`/chat/${agent.agentId}`}
                                 className="px-3 py-1.5 rounded-lg text-xs font-medium border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800/50 transition-all"
@@ -192,6 +214,20 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           </div>
+
+                          {/* Inline edit form */}
+                          {editingId === agent.agentId && (
+                            <AgentEditForm
+                              agent={agent}
+                              onSaved={(updated) => {
+                                setAgents(prev => prev.map(a =>
+                                  a.agentId === agent.agentId ? { ...a, ...updated } : a
+                                ));
+                                setEditingId(null);
+                              }}
+                              onCancel={() => setEditingId(null)}
+                            />
+                          )}
 
                           {/* Self Verification inline */}
                           <SelfVerification

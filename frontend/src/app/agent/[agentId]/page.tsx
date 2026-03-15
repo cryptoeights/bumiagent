@@ -12,6 +12,8 @@ import { getTemplate, formatCUSD, shortenAddress, TRUST_TIERS, getTrustTier } fr
 interface AgentDetail {
   agentId: number;
   name: string;
+  description: string;
+  logoUrl: string;
   templateId: number;
   pricePerCall: string;
   ownerAddress: string;
@@ -111,14 +113,25 @@ export default function AgentScanPage() {
           {/* Agent Header */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
             <div className="flex items-start gap-4">
-              <div 
-                className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0"
-                style={{ backgroundColor: tpl.color + '15', border: `1px solid ${tpl.color}30` }}
-              >
-                {tpl.icon}
-              </div>
+              {agent.logoUrl ? (
+                <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 bg-zinc-800 border border-zinc-700">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={agent.logoUrl} alt={agent.name} className="w-full h-full object-cover"
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                </div>
+              ) : (
+                <div 
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0"
+                  style={{ backgroundColor: tpl.color + '15', border: `1px solid ${tpl.color}30` }}
+                >
+                  {tpl.icon}
+                </div>
+              )}
               <div>
                 <h1 className="text-2xl font-bold mb-1">{agent.name}</h1>
+                {agent.description && (
+                  <p className="text-sm text-zinc-400 mb-2">{agent.description}</p>
+                )}
                 <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
                   <span className="font-mono">#{agent.agentId}</span>
                   <span className="px-2 py-0.5 rounded text-zinc-400" style={{ backgroundColor: tpl.color + '15', color: tpl.color }}>

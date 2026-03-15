@@ -11,6 +11,8 @@ export const agentRoutes = new Hono();
 
 const createAgentSchema = z.object({
   name: z.string().min(1).max(100),
+  description: z.string().max(500).optional(),
+  logoUrl: z.string().url().max(500).optional().or(z.literal('')),
   templateId: z.number().int().min(0).max(9),
   pricePerCall: z.string().regex(/^\d+$/, 'Must be a numeric string (wei)'),
   ownerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
@@ -28,19 +30,19 @@ agentRoutes.post('/', async (c) => {
     return c.json({ error: 'Validation failed', details: parsed.error.issues }, 400);
   }
 
-  const { name, templateId, pricePerCall, ownerAddress, customSystemPrompt } = parsed.data;
+  const { name, description, logoUrl, templateId, pricePerCall, ownerAddress, customSystemPrompt } = parsed.data;
 
   // Generate wallet
   const wallet = generateAgentWallet();
 
-  // Get next agent ID (auto-increment from DB, matches on-chain later)
-  // For MVP, we use DB sequence. On-chain registration happens separately.
   const [agent] = await db.insert(agents).values({
-    agentId: 0, // Placeholder — will be updated after on-chain registration
+    agentId: 0,
     ownerAddress: ownerAddress.toLowerCase(),
     agentWallet: wallet.address.toLowerCase(),
     encryptedPrivateKey: wallet.encryptedPrivateKey,
     name,
+    description: description || '',
+    logoUrl: logoUrl || '',
     templateId,
     customSystemPrompt: customSystemPrompt ?? null,
     pricePerCall,
@@ -80,6 +82,8 @@ agentRoutes.get('/', async (c) => {
     id: agents.id,
     agentId: agents.agentId,
     name: agents.name,
+    description: agents.description,
+    logoUrl: agents.logoUrl,
     templateId: agents.templateId,
     pricePerCall: agents.pricePerCall,
     ownerAddress: agents.ownerAddress,
@@ -97,6 +101,46 @@ agentRoutes.get('/', async (c) => {
   return c.json({ agents: results, limit, offset });
 });
 
+// ─── PATCH /agents/:agentId — Update agent (owner only) ──
+
+const updateAgentSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  description: z.string().max(500).optional(),
+  logoUrl: z.string().url().max(500).optional().or(z.literal('')),
+  ownerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+});
+
+agentRoutes.patch('/:agentId', async (c) => {
+  const agentId = parseInt(c.req.param('agentId'), 10);
+  if (isNaN(agentId)) return c.json({ error: 'Invalid agentId' }, 400);
+
+  const body = await c.req.json().catch(() => null);
+  if (!body) return c.json({ error: 'Invalid JSON' }, 400);
+
+  const parsed = updateAgentSchema.safeParse(body);
+  if (!parsed.success) return c.json({ error: 'Validation failed', details: parsed.error.issues }, 400);
+
+  // Check ownership
+  const [agent] = await db.select({ ownerAddress: agents.ownerAddress })
+    .from(agents).where(eq(agents.agentId, agentId)).limit(1);
+  if (!agent) return c.json({ error: 'Agent not found' }, 404);
+  if (agent.ownerAddress !== parsed.data.ownerAddress.toLowerCase()) {
+    return c.json({ error: 'Not the agent owner' }, 403);
+  }
+
+  const updates: Record<string, any> = { updatedAt: new Date() };
+  if (parsed.data.name !== undefined) updates.name = parsed.data.name;
+  if (parsed.data.description !== undefined) updates.description = parsed.data.description;
+  if (parsed.data.logoUrl !== undefined) updates.logoUrl = parsed.data.logoUrl;
+
+  const [updated] = await db.update(agents)
+    .set(updates)
+    .where(eq(agents.agentId, agentId))
+    .returning();
+
+  return c.json({ agent: { agentId: updated.agentId, name: updated.name, description: updated.description, logoUrl: updated.logoUrl } });
+});
+
 // ─── GET /agents/:agentId — Agent detail ────────────────
 
 agentRoutes.get('/:agentId', async (c) => {
@@ -107,11 +151,14 @@ agentRoutes.get('/:agentId', async (c) => {
     id: agents.id,
     agentId: agents.agentId,
     name: agents.name,
+    description: agents.description,
+    logoUrl: agents.logoUrl,
     templateId: agents.templateId,
     pricePerCall: agents.pricePerCall,
     ownerAddress: agents.ownerAddress,
     agentWallet: agents.agentWallet,
     isActive: agents.isActive,
+    selfVerified: agents.selfVerified,
     createdAt: agents.createdAt,
     updatedAt: agents.updatedAt,
   })

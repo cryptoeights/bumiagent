@@ -7,6 +7,8 @@ export const agents = pgTable('agents', {
   agentWallet: varchar('agent_wallet', { length: 42 }).unique().notNull(),
   encryptedPrivateKey: text('encrypted_private_key').notNull(),
   name: varchar('name', { length: 100 }).notNull(),
+  description: text('description').default(''),
+  logoUrl: text('logo_url').default(''),
   templateId: smallint('template_id').notNull(),
   customSystemPrompt: text('custom_system_prompt'),
   pricePerCall: numeric('price_per_call', { precision: 78, scale: 0 }).notNull(),
