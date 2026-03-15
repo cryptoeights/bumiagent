@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from 'wagmi';
+import { celo } from 'wagmi/chains';
 import { Navbar } from '@/components/Navbar';
 import { apiFetch } from '@/lib/api';
+import { CUSD_ADDRESS, ERC20_ABI } from '@/lib/contracts';
 import { useRouter } from 'next/navigation';
 
+const PREMIUM_PRICE = BigInt('5000000000000000000'); // 5 cUSD
 interface Template {
   id: number;
   name: string;
@@ -15,7 +18,8 @@ interface Template {
 }
 
 export default function DeployPage() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
+  const { switchChain } = useSwitchChain();
   const router = useRouter();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [name, setName] = useState('');
@@ -24,8 +28,13 @@ export default function DeployPage() {
   const [skillMd, setSkillMd] = useState('');
   const [templateId, setTemplateId] = useState(0);
   const [pricePerCall, setPricePerCall] = useState('50000000000000000');
+  const [selectedTier, setSelectedTier] = useState<'free' | 'premium'>('free');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pendingPremiumAgent, setPendingPremiumAgent] = useState<any>(null);
+
+  const { writeContract, data: txHash, error: txError, reset: resetTx } = useWriteContract();
+  const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({ hash: txHash });
   const [success, setSuccess] = useState<any>(null);
 
   useEffect(() => {
@@ -34,10 +43,48 @@ export default function DeployPage() {
 
   const selectedTemplate = templates.find(t => t.id === templateId);
 
+  // Premium TX confirmed → call subscribe endpoint → show success
+  useEffect(() => {
+    if (txConfirmed && txHash && pendingPremiumAgent && address) {
+      apiFetch(`/agents/${pendingPremiumAgent.agentId}/subscribe`, {
+        method: 'POST',
+        body: JSON.stringify({ callerAddress: address, txHash }),
+      }).then(() => {
+        setSuccess({ ...pendingPremiumAgent, subscriptionTier: 'premium' });
+        setPendingPremiumAgent(null);
+        setLoading(false);
+        resetTx();
+      }).catch(() => {
+        // Payment failed but agent deployed — show as free tier
+        setSuccess(pendingPremiumAgent);
+        setError('Premium payment failed — agent deployed as Free tier. Upgrade from Dashboard.');
+        setPendingPremiumAgent(null);
+        setLoading(false);
+        resetTx();
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [txConfirmed, txHash]);
+
+  useEffect(() => {
+    if (txError && pendingPremiumAgent) {
+      setSuccess(pendingPremiumAgent);
+      setError('Premium payment cancelled — agent deployed as Free tier');
+      setPendingPremiumAgent(null);
+      setLoading(false);
+      resetTx();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [txError]);
+
   async function handleDeploy(e: React.FormEvent) {
     e.preventDefault();
     if (!address) return setError('Connect your wallet first');
     if (!name.trim()) return setError('Agent name is required');
+    if (selectedTier === 'premium' && chainId !== celo.id) {
+      switchChain({ chainId: celo.id });
+      return;
+    }
 
     setLoading(true);
     setError('');
@@ -56,11 +103,20 @@ export default function DeployPage() {
         }),
       });
 
-      setSuccess(result.agent);
+      if (selectedTier === 'premium') {
+        // Deploy succeeded — now trigger cUSD payment for premium
+        setPendingPremiumAgent(result.agent);
+        writeContract({
+          address: CUSD_ADDRESS, abi: ERC20_ABI, functionName: 'transfer',
+          args: [result.agent.agentWallet as `0x${string}`, PREMIUM_PRICE], chain: celo,
+        });
+      } else {
+        setSuccess(result.agent);
+      }
     } catch (err: any) {
       setError(err.error || 'Failed to deploy agent');
     } finally {
-      setLoading(false);
+      if (selectedTier === 'free') setLoading(false);
     }
   }
 
@@ -291,16 +347,26 @@ export default function DeployPage() {
                 </div>
               </div>
 
-              {/* Tier Info */}
+              {/* Tier Selection */}
               <div className="space-y-3">
                 <label className="block text-sm font-semibold">Subscription Tier</label>
 
                 {/* Free Tier */}
-                <div className="p-4 rounded-xl border-2 border-[var(--celo-green)] bg-[var(--celo-green)]/5 relative">
-                  <div className="absolute -top-2.5 left-3 px-2 bg-zinc-950 text-[10px] text-[var(--celo-green)] font-semibold">DEFAULT</div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTier('free')}
+                  className={`w-full text-left p-4 rounded-xl border-2 transition-all relative ${
+                    selectedTier === 'free'
+                      ? 'border-[var(--celo-green)] bg-[var(--celo-green)]/5'
+                      : 'border-zinc-800 bg-zinc-900/30 hover:border-zinc-700'
+                  }`}
+                >
+                  {selectedTier === 'free' && (
+                    <div className="absolute -top-2.5 left-3 px-2 bg-zinc-950 text-[10px] text-[var(--celo-green)] font-semibold">SELECTED</div>
+                  )}
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-sm text-[var(--celo-green)]">🌱 Free Tier</span>
-                    <span className="text-xs text-zinc-400">0 cUSD/mo</span>
+                    <span className="text-xs text-zinc-400">0 cUSD</span>
                   </div>
                   <ul className="text-xs text-zinc-400 space-y-1.5">
                     <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> Unlimited free model calls (Step Flash, Gemma)</li>
@@ -308,10 +374,21 @@ export default function DeployPage() {
                     <li className="flex items-start gap-2"><span className="text-[var(--celo-gold)]">→</span> 15% of revenue goes to EarthPool 🌍</li>
                     <li className="flex items-start gap-2"><span className="text-red-400">✗</span> Premium models (Sonnet): 100% cost to EarthPool</li>
                   </ul>
-                </div>
+                </button>
 
                 {/* Premium Tier */}
-                <div className="p-4 rounded-xl border border-[var(--celo-gold)]/30 bg-[var(--celo-gold)]/5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTier('premium')}
+                  className={`w-full text-left p-4 rounded-xl border-2 transition-all relative ${
+                    selectedTier === 'premium'
+                      ? 'border-[var(--celo-gold)] bg-[var(--celo-gold)]/5'
+                      : 'border-zinc-800 bg-zinc-900/30 hover:border-zinc-700'
+                  }`}
+                >
+                  {selectedTier === 'premium' && (
+                    <div className="absolute -top-2.5 left-3 px-2 bg-zinc-950 text-[10px] text-[var(--celo-gold)] font-semibold">SELECTED</div>
+                  )}
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-sm text-[var(--celo-gold)]">⚡ Premium Tier</span>
                     <span className="text-xs text-[var(--celo-gold)] font-semibold">5 cUSD one-time</span>
@@ -323,11 +400,15 @@ export default function DeployPage() {
                     <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> 0% EarthPool contribution</li>
                     <li className="flex items-start gap-2"><span className="text-[var(--celo-green)]">✓</span> Priority in registry listings</li>
                   </ul>
-                  <p className="text-[10px] text-[var(--celo-gold)]/60 mt-2">Upgrade anytime from your Dashboard after deploying</p>
-                </div>
+                  {selectedTier === 'premium' && (
+                    <p className="text-[10px] text-[var(--celo-gold)] mt-2">
+                      💳 5 cUSD will be charged after deploy via wallet transaction
+                    </p>
+                  )}
+                </button>
 
                 <p className="text-[10px] text-zinc-600 text-center">
-                  All agents start on Free tier. EarthPool funds climate initiatives on Celo 🌍
+                  EarthPool funds climate initiatives on Celo 🌍
                 </p>
               </div>
 
@@ -342,7 +423,13 @@ export default function DeployPage() {
                 disabled={loading || !isConnected}
                 className="w-full py-3.5 rounded-xl bg-[var(--celo-green)] text-zinc-950 font-bold text-sm hover:brightness-110 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed glow-green"
               >
-                {loading ? 'Deploying...' : !isConnected ? 'Connect Wallet to Deploy' : 'Deploy Agent 🚀'}
+                {loading
+                  ? (pendingPremiumAgent ? 'Confirm 5 cUSD in wallet...' : 'Deploying...')
+                  : !isConnected
+                  ? 'Connect Wallet to Deploy'
+                  : selectedTier === 'premium'
+                  ? 'Deploy Agent + Pay 5 cUSD ⚡'
+                  : 'Deploy Agent 🚀'}
               </button>
 
               {!isConnected && (

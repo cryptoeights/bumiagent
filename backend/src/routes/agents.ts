@@ -13,7 +13,7 @@ const createAgentSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
   logoUrl: z.string().max(200000).optional().or(z.literal('')),
-  templateId: z.number().int().min(0).max(9),
+  templateId: z.coerce.number().int().min(0).max(9),
   pricePerCall: z.string().regex(/^\d+$/, 'Must be a numeric string (wei)'),
   ownerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
   customSystemPrompt: z.string().max(10000).optional(),
