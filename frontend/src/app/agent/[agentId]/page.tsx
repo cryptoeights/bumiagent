@@ -157,7 +157,7 @@ export default function AgentScanPage() {
     const hasServices = agent.services && agent.services.length > 0;
     
     if (hasServices && !selectedService) return setJobError('Select a service');
-    if (!jobDesc.trim()) return setJobError('Description is required');
+    if (!hasServices && !jobDesc.trim()) return setJobError('Description is required');
     
     let budgetWei: string;
     if (selectedService) {
@@ -181,7 +181,7 @@ export default function AgentScanPage() {
           agentId: agent.agentId,
           clientAddress: address,
           description: selectedService
-            ? `[${selectedService.name}] ${jobDesc.trim()}`
+            ? `[${selectedService.name}]${jobDesc.trim() ? ' ' + jobDesc.trim() : ''}`
             : jobDesc.trim(),
           budget: budgetWei,
         }),
@@ -428,50 +428,73 @@ export default function AgentScanPage() {
             </div>
           )}
 
-          {/* Agent Services */}
+          {/* Hire Agent — Services & Quick Hire */}
           {agent.services && (agent.services as AgentService[]).length > 0 && (
             <div className="rounded-xl border border-zinc-800/50 bg-zinc-900/30 overflow-hidden mb-6">
-              <div className="px-5 py-3 border-b border-zinc-800/50 flex items-center justify-between">
-                <h3 className="font-bold text-sm">Services & Pricing</h3>
-                {address && (
-                  <button
-                    onClick={() => {
-                      setShowCreateJob(true);
-                      setJobError('');
-                      setJobSuccess('');
-                      // Scroll to jobs section
-                      document.getElementById('jobs-section')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--celo-violet)] text-white hover:brightness-110 transition-all"
-                  >
-                    🤝 Hire Agent
-                  </button>
-                )}
+              <div className="px-5 py-3 border-b border-zinc-800/50">
+                <h3 className="font-bold text-sm">Hire Agent</h3>
               </div>
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {(agent.services as AgentService[]).map((svc, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => {
-                      if (!address) return;
-                      setSelectedService(svc);
-                      setShowCreateJob(true);
-                      document.getElementById('jobs-section')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="text-left p-3 rounded-lg border border-zinc-800 bg-zinc-900/50 hover:border-[var(--celo-violet)]/50 hover:bg-[var(--celo-violet)]/5 transition-all cursor-pointer"
-                  >
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="text-sm font-semibold text-zinc-200">{svc.name}</span>
-                      <span className="text-sm font-mono font-bold text-[var(--celo-gold)] shrink-0 ml-2">
-                        {formatCUSD(svc.price)} cUSD
+              <div className="p-4 space-y-3">
+                {/* Service cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {(agent.services as AgentService[]).map((svc, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        if (!address) { setJobError('Connect wallet first'); return; }
+                        setSelectedService(selectedService?.name === svc.name ? null : svc);
+                        setJobError('');
+                      }}
+                      className={`text-left p-3 rounded-lg border-2 transition-all ${
+                        selectedService?.name === svc.name
+                          ? 'border-[var(--celo-violet)] bg-[var(--celo-violet)]/10'
+                          : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-600'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-0.5">
+                        <span className="text-sm font-semibold text-zinc-200">{svc.name}</span>
+                        <span className="text-sm font-mono font-bold text-[var(--celo-gold)] shrink-0 ml-2">
+                          {formatCUSD(svc.price)} cUSD
+                        </span>
+                      </div>
+                      {svc.description && (
+                        <p className="text-[10px] text-zinc-500">{svc.description}</p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Inline hire form — appears when service selected */}
+                {selectedService && address && (
+                  <div className="p-3 rounded-lg border border-[var(--celo-violet)]/30 bg-[var(--celo-violet)]/5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-[var(--celo-violet)]">
+                        {selectedService.name} — {formatCUSD(selectedService.price)} cUSD
                       </span>
+                      <button onClick={() => setSelectedService(null)} className="text-zinc-600 hover:text-zinc-400 text-xs">✕</button>
                     </div>
-                    {svc.description && (
-                      <p className="text-xs text-zinc-500">{svc.description}</p>
-                    )}
-                  </button>
-                ))}
+                    <textarea
+                      value={jobDesc}
+                      onChange={e => setJobDesc(e.target.value)}
+                      placeholder="Any specific instructions? (optional)"
+                      rows={2}
+                      maxLength={5000}
+                      className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm placeholder-zinc-600 focus:outline-none focus:border-[var(--celo-violet)]/50 resize-none"
+                    />
+                    <button
+                      onClick={handleCreateJob}
+                      disabled={creatingJob}
+                      className="w-full px-4 py-2.5 rounded-lg text-sm font-semibold bg-[var(--celo-violet)] text-white hover:brightness-110 transition-all disabled:opacity-50"
+                    >
+                      {creatingJob ? 'Creating...' : `Submit Job — ${formatCUSD(selectedService.price)} cUSD`}
+                    </button>
+                  </div>
+                )}
+
+                {!address && (
+                  <p className="text-[10px] text-zinc-600 text-center">Connect wallet to hire this agent</p>
+                )}
               </div>
             </div>
           )}
@@ -491,94 +514,49 @@ export default function AgentScanPage() {
           {/* ERC-8183 Jobs Section */}
           <div id="jobs-section" className="rounded-xl border border-zinc-800/50 bg-zinc-900/30 overflow-hidden">
             <div className="px-5 py-3 border-b border-zinc-800/50 flex items-center justify-between">
-              <h3 className="font-bold text-sm">ERC-8183 Jobs ({jobs.length})</h3>
-              {address ? (
+              <h3 className="font-bold text-sm">Jobs ({jobs.length})</h3>
+              {/* Only show hire button here if agent has NO services (otherwise hire is above) */}
+              {address && (!agent.services || (agent.services as AgentService[]).length === 0) && (
                 <button
                   onClick={() => { setShowCreateJob(!showCreateJob); setJobError(''); setJobSuccess(''); }}
                   className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--celo-violet)] text-white hover:brightness-110 transition-all"
                 >
                   {showCreateJob ? 'Cancel' : '+ Hire Agent'}
                 </button>
-              ) : (
-                <span className="text-[10px] text-zinc-600">Connect wallet to hire</span>
               )}
             </div>
 
-            {/* Create Job Form */}
-            {showCreateJob && (
+            {/* Create Job Form — only for agents WITHOUT services */}
+            {showCreateJob && (!agent.services || (agent.services as AgentService[]).length === 0) && (
               <div className="px-5 py-4 border-b border-zinc-800/50 bg-zinc-900/50">
                 <div className="space-y-3">
-                  {/* Service Selection */}
-                  {agent.services && agent.services.length > 0 && (
-                    <div>
-                      <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-2">
-                        Select Service
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {(agent.services as AgentService[]).map((svc, i) => (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() => setSelectedService(selectedService?.name === svc.name ? null : svc)}
-                            className={`text-left p-3 rounded-lg border-2 transition-all ${
-                              selectedService?.name === svc.name
-                                ? 'border-[var(--celo-violet)] bg-[var(--celo-violet)]/10'
-                                : 'border-zinc-700 bg-zinc-800/50 hover:border-zinc-600'
-                            }`}
-                          >
-                            <div className="flex justify-between items-start mb-1">
-                              <span className="text-sm font-semibold text-zinc-200">{svc.name}</span>
-                              <span className="text-xs font-mono text-[var(--celo-gold)] shrink-0 ml-2">
-                                {formatCUSD(svc.price)} cUSD
-                              </span>
-                            </div>
-                            {svc.description && (
-                              <p className="text-[10px] text-zinc-500">{svc.description}</p>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   <div>
                     <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">
-                      {agent.services && agent.services.length > 0 ? 'Additional Details' : 'Job Description'}
+                      Job Description
                     </label>
                     <textarea
                       value={jobDesc}
                       onChange={e => setJobDesc(e.target.value)}
-                      placeholder={agent.services && agent.services.length > 0
-                        ? "Add any specific instructions or details..."
-                        : "Describe what you want the agent to do..."}
+                      placeholder="Describe what you want the agent to do..."
                       rows={3}
                       maxLength={5000}
                       className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm placeholder-zinc-600 focus:outline-none focus:border-[var(--celo-violet)]/50 resize-none"
                     />
                   </div>
                   <div className="flex gap-3 items-end">
-                    {/* Custom budget only if no services defined */}
-                    {(!agent.services || agent.services.length === 0) && (
-                      <div className="flex-1">
-                        <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">
-                          Budget (cUSD)
-                        </label>
-                        <input
-                          type="number"
-                          value={jobBudget}
-                          onChange={e => setJobBudget(e.target.value)}
-                          min="0.01"
-                          step="0.1"
-                          className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm focus:outline-none focus:border-[var(--celo-violet)]/50"
-                        />
-                      </div>
-                    )}
-                    {selectedService && (
-                      <div className="flex-1 px-3 py-2 rounded-lg bg-[var(--celo-gold)]/10 border border-[var(--celo-gold)]/20">
-                        <span className="text-[10px] text-zinc-500">Price:</span>{' '}
-                        <span className="text-sm font-bold text-[var(--celo-gold)]">{formatCUSD(selectedService.price)} cUSD</span>
-                      </div>
-                    )}
+                    <div className="flex-1">
+                      <label className="block text-[10px] text-zinc-500 uppercase tracking-wider mb-1">
+                        Budget (cUSD)
+                      </label>
+                      <input
+                        type="number"
+                        value={jobBudget}
+                        onChange={e => setJobBudget(e.target.value)}
+                        min="0.01"
+                        step="0.1"
+                        className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm focus:outline-none focus:border-[var(--celo-violet)]/50"
+                      />
+                    </div>
                     <button
                       onClick={handleCreateJob}
                       disabled={creatingJob}
@@ -587,9 +565,6 @@ export default function AgentScanPage() {
                       {creatingJob ? 'Creating...' : 'Submit Job'}
                     </button>
                   </div>
-                  <p className="text-[10px] text-zinc-600">
-                    Create → Fund with cUSD → Agent works → Review deliverable → Accept or Reject
-                  </p>
                 </div>
               </div>
             )}
