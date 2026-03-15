@@ -1,7 +1,7 @@
 # Bumi Agent — Karma GAP Milestones
 
-Isian form Karma GAP untuk milestone pekerjaan project dari awal sampai selesai.
-Setiap milestone dilengkapi **Follow Up** berisi deskripsi penyelesaian dan link commit GitHub.
+Karma GAP form entries for project milestones from start to finish.
+Each milestone includes a **Follow Up** with completion description and GitHub commit links.
 
 **Repository:** [github.com/cryptoeights/bumiagent](https://github.com/cryptoeights/bumiagent)
 
@@ -15,7 +15,7 @@ Setiap milestone dilengkapi **Follow Up** berisi deskripsi penyelesaian dan link
 
 **Follow Up — Completed ✅**
 
-Milestone selesai. Ketiga smart contract (SpawnRegistry, AgentCommerce, EarthPool) sudah di-develop lengkap dengan 85 unit test menggunakan Foundry. Semua test passing dengan 100% coverage. Contract menggunakan pattern OpenZeppelin (ERC-721, ReentrancyGuard, Ownable) dan sudah siap deploy. SpawnRegistry menangani agent identity sebagai NFT + subscription, AgentCommerce mengimplementasikan full state machine untuk job escrow (Open → Funded → Submitted → Completed/Rejected), dan EarthPool mengelola 15% premium revenue untuk kampanye lingkungan.
+All three smart contracts (SpawnRegistry, AgentCommerce, EarthPool) have been fully developed with 85 unit tests using Foundry. All tests pass with 100% coverage. Contracts use OpenZeppelin patterns (ERC-721, ReentrancyGuard, Ownable) and are deployment-ready. SpawnRegistry handles agent identity as NFTs with subscription management, AgentCommerce implements a full state machine for job escrow (Open → Funded → Submitted → Completed/Rejected), and EarthPool manages 15% of premium revenue for environmental campaigns.
 
 **Commits:**
 - [`01a7dbd`](https://github.com/cryptoeights/bumiagent/commit/01a7dbda30cb80d156921138a4939ea2c1322722) — feat(contracts): S01 — SpawnRegistry, AgentCommerce, EarthPool with 85 tests
@@ -31,7 +31,7 @@ Milestone selesai. Ketiga smart contract (SpawnRegistry, AgentCommerce, EarthPoo
 
 **Follow Up — Completed ✅**
 
-Milestone selesai. Backend API fully functional dengan 16 endpoint. Agent registration otomatis generate wallet terenkripsi AES-256-GCM. Chat endpoint terintegrasi dengan OpenRouter untuk akses ke 8 AI model. x402 payment middleware memproses pembayaran cUSD per API call. Job lifecycle lengkap — create, fund, complete, reject dengan state tracking. Rate limiting via Upstash Redis mencegah abuse. Semua data persistent di PostgreSQL (Supabase) via Drizzle ORM.
+Backend API is fully functional with 16 endpoints. Agent registration automatically generates AES-256-GCM encrypted wallets. Chat endpoint integrates with OpenRouter for access to 8 AI models. x402 payment middleware processes cUSD payments per API call. Job lifecycle is complete — create, fund, complete, and reject with full state tracking. Rate limiting via Upstash Redis prevents abuse. All data is persisted in PostgreSQL (Supabase) via Drizzle ORM.
 
 **Commits:**
 - [`0ee8b20`](https://github.com/cryptoeights/bumiagent/commit/0ee8b200dcf26b3a0cdbd7c8274872f6a63dada5) — feat(backend): S02 — Agent registration, chat via OpenRouter, rate limiting
@@ -50,7 +50,7 @@ Milestone selesai. Backend API fully functional dengan 16 endpoint. Agent regist
 
 **Follow Up — Completed ✅**
 
-Milestone selesai. 7 halaman frontend sudah live: Landing page dengan hero section dan Top 3 Agents, Deploy form dengan 3 field (name, template, price) dan 10 template bawaan, Registry sebagai "App Store" untuk browse agent, AgentScan detail page, Chat interface dengan markdown rendering dan conversation history, serta Dashboard untuk manage agent milik user. Wallet connection via RainbowKit + wagmi berfungsi penuh. Semua interaksi blockchain menggunakan viem. Rebranding dari CeloSpawn ke Bumi Agent sudah dilakukan termasuk logo dan favicon baru.
+All 7 frontend pages are live: Landing page with hero section and Top 3 Agents ranking, Deploy form with 3 fields (name, template, price) and 10 built-in templates, Registry as an "App Store" for browsing agents, AgentScan detail page, Chat interface with markdown rendering and conversation history, and Dashboard for managing user-owned agents. Wallet connection via RainbowKit + wagmi is fully functional. All blockchain interactions use viem. Rebranding from CeloSpawn to Bumi Agent was completed including new logo and favicon.
 
 **Commits:**
 - [`73894e0`](https://github.com/cryptoeights/bumiagent/commit/73894e0e531d27b6f39a8549dddbaaf18eebd3ff) — feat(frontend): S04 — Landing page, deploy form, chat interface
@@ -73,7 +73,7 @@ Milestone selesai. 7 halaman frontend sudah live: Landing page dengan hero secti
 
 **Follow Up — Completed ✅**
 
-Milestone selesai. x402 payment protocol berfungsi penuh — setiap chat call otomatis memproses pembayaran cUSD on-chain. ERC-8183 Agentic Commerce UI sudah lengkap: agent owner bisa mendefinisikan services dengan harga custom, client bisa browse dan hire agent langsung dari halaman AgentScan, dana masuk escrow on-chain, agent otomatis generate deliverable menggunakan AI saat job di-fund, dan owner bisa approve atau reject. Semua transaksi dilengkapi TX hash dan link ke Celoscan. Tier system terimplementasi dengan EarthPool revenue split — 15% premium revenue otomatis masuk ke ReFi treasury.
+The x402 payment protocol is fully operational — every chat call automatically processes cUSD payments on-chain. The ERC-8183 Agentic Commerce UI is complete: agent owners can define custom services with pricing, clients can browse and hire agents directly from the AgentScan page, funds enter on-chain escrow, agents auto-generate deliverables using AI when a job is funded, and owners can approve or reject results. All transactions include TX hash and Celoscan links. Tier system is implemented with EarthPool revenue split — 15% of premium revenue automatically goes to the ReFi treasury.
 
 **Commits:**
 - [`84068dc`](https://github.com/cryptoeights/bumiagent/commit/84068dc3b574b6d541690adc2d0a3a9c7f55d65f) — feat: real cUSD on-chain payment for x402 chat
@@ -97,7 +97,7 @@ Milestone selesai. x402 payment protocol berfungsi penuh — setiap chat call ot
 
 **Follow Up — Completed ✅**
 
-Milestone selesai. Trust badge system berfungsi otomatis berdasarkan jumlah call — badge naik dari Grey ke Blue, Silver, dan Gold seiring penggunaan. Self Protocol terintegrasi penuh — agent owner bisa scan QR code untuk verifikasi proof-of-human, status tersimpan di database, dan badge ✅ Self Verified tampil di semua halaman (registry, agent detail, dashboard). Flow verifikasi menggunakan deepLink URL yang di-encode ke QR code. UI menampilkan badge trust dan Self verification secara inline per agent.
+Trust badge system works automatically based on call count — badges progress from Grey to Blue, Silver, and Gold as usage grows. Self Protocol is fully integrated — agent owners can scan a QR code for proof-of-human verification, status persists in the database, and the ✅ Self Verified badge displays across all pages (registry, agent detail, dashboard). The verification flow uses a deepLink URL encoded into a QR code. UI shows both trust badges and Self verification inline per agent.
 
 **Commits:**
 - [`8867095`](https://github.com/cryptoeights/bumiagent/commit/8867095a839831563212fed87a183e48b43de57d) — feat: S06 — Trust badges, verification display, README, final polish
@@ -118,7 +118,7 @@ Milestone selesai. Trust badge system berfungsi otomatis berdasarkan jumlah call
 
 **Follow Up — Completed ✅**
 
-Milestone selesai. Ketiga contract berhasil di-deploy ke Celo Mainnet dan terverifikasi di Celoscan — source code visible secara publik. Backend config di-update dengan checksummed mainnet addresses. Frontend chain config di-switch dari testnet ke Celo Mainnet (chain ID 42220). Semua interaksi on-chain (registrasi agent, escrow job, pembayaran cUSD) sekarang berjalan di mainnet dengan aset real. Verifikasi dilakukan dengan mengecek contract di Celoscan dan memastikan backend bisa membaca data dari mainnet.
+All three contracts were successfully deployed to Celo Mainnet and verified on Celoscan with publicly visible source code. Backend config was updated with checksummed mainnet addresses. Frontend chain config was switched from testnet to Celo Mainnet (chain ID 42220). All on-chain interactions (agent registration, job escrow, cUSD payments) now execute on mainnet with real assets. Verification was confirmed by checking contracts on Celoscan and ensuring the backend reads data from mainnet.
 
 - EarthPool: [0x4cA864...d51f](https://celoscan.io/address/0x4cA864b13563ff6c5626e3B4f1C4b310b866d51f)
 - SpawnRegistry: [0xB358d6...c070](https://celoscan.io/address/0xB358d6FC42aB393Da7CaA3B2C02C9282Ad7ac070)
@@ -137,7 +137,7 @@ Milestone selesai. Ketiga contract berhasil di-deploy ke Celo Mainnet dan terver
 
 **Follow Up — Completed ✅**
 
-Milestone selesai. Multi-model routing berfungsi penuh via OpenRouter. Sistem otomatis memilih model berdasarkan tier agent — free agent hanya bisa akses 5 free model, premium agent akses semua 8 model. Model selector UI tersedia di chat interface sehingga user bisa pilih model preferred. Automatic fallback terimplementasi — jika model pertama gagal, sistem retry dengan model lain di tier yang sama. Billing untuk premium model ditangani secara transparan. Semua 8 model sudah ditest dan berjalan di production.
+Multi-model routing is fully operational via OpenRouter. The system automatically selects models based on agent tier — free agents can only access 5 free models, premium agents access all 8 models. A model selector UI is available in the chat interface so users can choose their preferred model. Automatic fallback is implemented — if the primary model fails, the system retries with the next available model in the same tier. Billing for premium models is handled transparently. All 8 models have been tested and are running in production.
 
 **Commits:**
 - [`78ca149`](https://github.com/cryptoeights/bumiagent/commit/78ca149ca32dd32b6f14852b97603d634fdc2f99) — feat: model selector, private key display, premium model billing
@@ -154,7 +154,7 @@ Milestone selesai. Multi-model routing berfungsi penuh via OpenRouter. Sistem ot
 
 **Follow Up — Completed ✅**
 
-Milestone selesai. Analytics dashboard terimplementasi di setiap halaman agent detail dengan 3 jenis chart Recharts: Line chart untuk call trends harian, Area chart untuk revenue cUSD, dan Pie chart untuk distribusi penggunaan AI model. Backend endpoint /api/agents/:id/analytics mengagregasi data dari database ke daily buckets untuk 30 hari terakhir. Summary stats (total calls, total revenue, unique models used) ditampilkan di atas chart. Semua data real-time dari production database.
+Analytics dashboard is implemented on each agent's detail page with 3 Recharts chart types: Line chart for daily call trends, Area chart for cUSD revenue, and Pie chart for AI model usage distribution. The backend endpoint /api/agents/:id/analytics aggregates data from the database into daily buckets for the past 30 days. Summary stats (total calls, total revenue, unique models used) are displayed above the charts. All data is served in real-time from the production database.
 
 **Commits:**
 - [`f75153a`](https://github.com/cryptoeights/bumiagent/commit/f75153a12864c056e33a3060c2d0150606597073) — feat(M002): polish & production — multi-model routing, analytics, mobile UI
@@ -169,7 +169,7 @@ Milestone selesai. Analytics dashboard terimplementasi di setiap halaman agent d
 
 **Follow Up — Completed ✅**
 
-Milestone selesai. Semua 7 halaman sudah mobile-responsive untuk viewport 375px ke atas. Navbar menggunakan hamburger menu di mobile dengan animasi open/close. Layout grid di semua halaman (registry, deploy, dashboard, analytics) otomatis stack secara vertikal di layar kecil. Chat interface punya collapsible sidebar untuk mobile. Semua breakpoint (mobile, tablet, desktop) sudah diverifikasi secara visual menggunakan browser tools.
+All 7 pages are fully mobile-responsive for 375px+ viewports. Navbar uses a hamburger menu on mobile with open/close animation. Grid layouts across all pages (registry, deploy, dashboard, analytics) automatically stack vertically on small screens. Chat interface has a collapsible sidebar for mobile. All breakpoints (mobile, tablet, desktop) have been visually verified using browser tools.
 
 **Commits:**
 - [`f75153a`](https://github.com/cryptoeights/bumiagent/commit/f75153a12864c056e33a3060c2d0150606597073) — feat(M002): polish & production — multi-model routing, analytics, mobile UI
@@ -184,7 +184,7 @@ Milestone selesai. Semua 7 halaman sudah mobile-responsive untuk viewport 375px 
 
 **Follow Up — Completed ✅**
 
-Milestone selesai. Backend berhasil di-deploy ke Railway dari subdirectory `backend/` (monorepo root sempat gagal 2x karena Railpack tidak bisa detect app). Health check di /api/health mengembalikan status OK. Frontend di-deploy ke Vercel dengan custom domain bumiagent.one. Environment variables production sudah di-set (API URL, WalletConnect, Chain ID). CORS di-fix dengan dynamic origin function yang support pattern *.vercel.app untuk preview deployments. Semua 16 endpoint dan 7 halaman frontend terverifikasi live di production.
+Backend was successfully deployed to Railway from the `backend/` subdirectory (initial deploys from monorepo root failed twice because Railpack couldn't detect the app). Health check at /api/health returns OK status. Frontend was deployed to Vercel with custom domain bumiagent.one. Production environment variables were configured (API URL, WalletConnect, Chain ID). CORS was fixed with a dynamic origin function supporting the *.vercel.app pattern for preview deployments. All 16 endpoints and 7 frontend pages are verified live in production.
 
 - Frontend: [bumiagent.one](https://bumiagent.one)
 - Backend: [backend-production-e3c2a.up.railway.app/api/health](https://backend-production-e3c2a.up.railway.app/api/health)
@@ -204,7 +204,7 @@ Milestone selesai. Backend berhasil di-deploy ke Railway dari subdirectory `back
 
 **Follow Up — Completed ✅**
 
-Milestone selesai. README di-update lengkap dengan fitur M002, tabel contract addresses + link Celoscan, tabel 8 AI model, diagram arsitektur, dan daftar 16 API endpoint. Dokumen Karma GAP dibuat (submission + support document) berisi deskripsi project, problem/solution, tech stack, dan semua metrik. Pitch deck HTML 11 slide sudah live di bumiagent.one/deck.html dan bisa diakses dari menu Deck di navbar. Demo script untuk video walkthrough 5-7 menit sudah ditulis lengkap dengan timing per segment. Logo brand 1024×1024 sudah dibuat dan digunakan di seluruh platform.
+README was fully updated with M002 features, contract address table with Celoscan links, 8 AI model table, architecture diagram, and 16 API endpoint listing. Karma GAP documents were created (submission + support document) covering project description, problem/solution, tech stack, and all metrics. An 11-slide HTML pitch deck is live at bumiagent.one/deck.html and accessible from the Deck menu in the navbar. A demo script for a 5-7 minute video walkthrough was written with timing per segment. Brand logo (1024×1024) was created and deployed across the platform.
 
 - Pitch Deck: [bumiagent.one/deck.html](https://bumiagent.one/deck.html)
 - README: [github.com/cryptoeights/bumiagent](https://github.com/cryptoeights/bumiagent)
